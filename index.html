@@ -1,0 +1,1727 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- SEO & Favicon -->
+    <title id="seo-title">Profil BioLink Anda</title>
+    <meta id="seo-description" name="description" content="Semua link saya di satu tempat.">
+    <link id="favicon" rel="icon" href="https://placehold.co/32x32/007bff/ffffff?text=B">
+    
+    <!-- Library -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Konfigurasi Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { 'sans': ['var(--font-family)', 'ui-sans-serif', 'system-ui'] },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'shake': 'shake 1s cubic-bezier(.36,.07,.19,.97) both infinite',
+                        'bounce-fast': 'bounce 0.8s infinite',
+                        'highlight-glow': 'highlight-glow 2s ease-in-out infinite alternate',
+                    },
+                    keyframes: {
+                        shake: { '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' }, '20%, 80%': { transform: 'translate3d(2px, 0, 0)' }, '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' }, '40%, 60%': { transform: 'translate3d(4px, 0, 0)' } },
+                        'highlight-glow': { 'from': { 'box-shadow': '0 0 5px 0px var(--highlight-color)' }, 'to': { 'box-shadow': '0 0 20px 8px var(--highlight-color)' } }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Custom Styles -->
+    <style>
+        :root {
+            --font-family: 'Inter', sans-serif;
+            --primary-color: #ffffff; --text-color: #1f2937; --bg-color: #f3f4f6;
+            --highlight-color: rgba(59, 130, 246, 0.5); --brand-color: #3b82f6; /* Warna biru default */
+            cursor: var(--custom-cursor, auto);
+        }
+        .theme-dark { --primary-color: #1f2937; --text-color: #f3f4f6; --bg-color: #111827; }
+        .theme-gradient { --primary-color: #ffffff; --text-color: #1f2937; --bg-color: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        /* Tema Baru */
+        .theme-minimalist { --primary-color: #ffffff; --text-color: #333333; --bg-color: #ffffff; --highlight-color: rgba(200, 200, 200, 0.5); border: 1px solid #e0e0e0; box-shadow: none !important; }
+        .theme-minimalist .link-button { box-shadow: none !important; border: 1px solid #e0e0e0; }
+        .theme-minimalist header img { border-width: 1px !important; border-color: #e0e0e0 !important; }
+
+        body { font-family: var(--font-family), sans-serif; background: var(--bg-color); color: var(--text-color); }
+        #app-container { background: var(--bg-color); background-size: cover; background-position: center; background-attachment: fixed; transition: background 0.5s ease; }
+        .link-button { background-color: var(--primary-color); color: var(--text-color); transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .link-button:hover { transform: scale(1.03); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .link-shape-rounded { border-radius: 0.75rem; } .link-shape-pill { border-radius: 9999px; } .link-shape-square { border-radius: 0px; }
+        /* Gaya Tombol Baru */
+        .link-style-outline { background-color: transparent !important; border: 2px solid var(--primary-color); color: var(--primary-color) !important; }
+        .link-style-softshadow { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06) !important; }
+        .link-header { color: var(--text-color); font-weight: 600; text-align: center; margin-top: 1.25rem; margin-bottom: 0.5rem; }
+        .link-thumbnail { width: 48px; height: 48px; object-cover; border-radius: 0.5rem; margin-right: 1rem; flex-shrink: 0; }
+        #settings-panel::-webkit-scrollbar, #icon-picker-modal::-webkit-scrollbar { display: none; }
+        #settings-panel, #icon-picker-modal { -ms-overflow-style: none; scrollbar-width: none; }
+        [data-lucide] { width: 20px; height: 20px; flex-shrink: 0; }
+        /* Ukuran Font */
+        .font-size-small #profile-name { font-size: 1.5rem; } .font-size-small #profile-bio { font-size: 0.875rem; }
+        .font-size-medium #profile-name { font-size: 1.875rem; } .font-size-medium #profile-bio { font-size: 1rem; }
+        .font-size-large #profile-name { font-size: 2.25rem; } .font-size-large #profile-bio { font-size: 1.125rem; }
+        /* Warna Brand */
+        #verified-badge, .link-button.animate-highlight-glow { --highlight-color: var(--brand-color-semi-transparent, rgba(59, 130, 246, 0.5)); }
+        #verified-badge { color: var(--brand-color); fill: var(--brand-color); }
+        /* Link 2 Kolom */
+        @media (min-width: 640px) {
+            .links-2-columns { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+            .links-2-columns .link-header { grid-column: 1 / -1; } /* Header tetap full width */
+        }
+        /* Class helper untuk input/textarea/select */
+        .form-input {
+            width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem;
+            background-color: white; color: #111827;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .form-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3); }
+        .form-label { display: block; font-size: 0.875rem; font-medium: 600; margin-bottom: 0.25rem; color: #374151; }
+        .form-fieldset { border: 1px solid #d1d5db; padding: 1rem; border-radius: 0.5rem; }
+        .form-legend { font-size: 0.875rem; font-medium: 600; padding: 0 0.25rem; margin-left: 0.5rem; color: #374151; }
+        .btn-primary {
+            width: 100%; background-color: #3b82f6; color: white; padding: 0.75rem 1rem;
+            border-radius: 0.5rem; font-weight: 600; transition: background-color 0.2s ease;
+            display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+        }
+        .btn-primary:hover { background-color: #2563eb; }
+        .btn-secondary {
+            width: 100%; background-color: #6b7280; color: white; padding: 0.75rem 1rem;
+            border-radius: 0.5rem; font-weight: 600; transition: background-color 0.2s ease;
+            display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+        }
+        .btn-secondary:hover { background-color: #4b5563; }
+        .btn-danger { color: #dc2626; font-weight: 500; transition: color 0.2s ease; }
+        .btn-danger:hover { color: #b91c1c; }
+        .btn-upload {
+            width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.5rem; background-color: #f3f4f6;
+            color: #374151; cursor: pointer; display: flex; align-items: center;
+            justify-content: center; gap: 0.5rem; border: 1px solid #d1d5db;
+        }
+        .btn-upload:hover { background-color: #e5e7eb; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- ===== MODALS ===== -->
+    <div id="modal-overlay" class="hidden fixed inset-0 bg-black/70 backdrop-blur-md z-[110] flex items-center justify-center p-4 transition-opacity duration-300">
+        
+        <!-- Modal Password -->
+        <div id="password-modal" class="hidden bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full">
+            <h3 class="text-2xl font-bold text-gray-800 text-center mb-4">Profil Ini Dikunci</h3>
+            <p class="text-gray-600 text-center mb-6">Silakan masukkan password untuk melanjutkan.</p>
+            <form id="password-form" class="space-y-4">
+                <input id="password-input" type="password" class="form-input" placeholder="Password...">
+                <button type="submit" class="btn-primary">Buka</button>
+            </form>
+            <p id="password-error" class="text-red-500 text-center text-sm mt-3 hidden">Password salah.</p>
+        </div>
+        
+        <!-- Modal Sensitive -->
+        <div id="sensitive-modal" class="hidden bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full text-center">
+            <i data-lucide="alert-triangle" class="w-16 h-16 text-yellow-500 mx-auto mb-4"></i>
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">Peringatan Konten</h3>
+            <p class="text-gray-600 mb-8">Profil ini mungkin berisi konten sensitif atau dewasa (18+). Apakah Anda yakin ingin melanjutkan?</p>
+            <button id="sensitive-confirm-btn" class="btn-primary">Ya, Lanjutkan (Saya 18+)</button>
+        </div>
+
+        <!-- Icon Picker Modal (Fitur Baru) -->
+        <div id="icon-picker-modal" class="hidden bg-white p-6 rounded-2xl shadow-xl max-w-lg w-full h-[80vh] flex flex-col text-gray-800">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold">Pilih Ikon (Lucide)</h3>
+                <button id="close-icon-picker-btn" class="text-gray-600 hover:text-gray-900"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+            <input id="icon-search-input" type="text" placeholder="Cari ikon (cth: 'github', 'mail', 'link')..." class="form-input mb-4">
+            <div id="icon-list" class="flex-1 overflow-y-auto grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-2 border p-2 rounded-lg bg-gray-50">
+                <!-- Ikon Lucide akan dimuat di sini oleh JS -->
+            </div>
+        </div>
+
+        <!-- Contact Form Modal (Fitur Baru) -->
+        <div id="contact-modal" class="hidden bg-white p-8 rounded-2xl shadow-xl max-w-md w-full text-gray-800">
+             <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold">Kirim Pesan</h3>
+                <button id="close-contact-btn" class="text-gray-600 hover:text-gray-900"><i data-lucide="x" class="w-7 h-7"></i></button>
+            </div>
+            <form id="contact-form" class="space-y-4">
+                <input id="contact-email" type="email" class="form-input" placeholder="Email Anda (Opsional)">
+                <textarea id="contact-message" rows="4" class="form-input" placeholder="Pesan Anda..." required></textarea>
+                <button type="submit" class="btn-primary">Kirim Pesan</button>
+            </form>
+             <p id="contact-success-msg" class="text-green-600 text-center mt-3 hidden">Pesan terkirim!</p>
+        </div>
+    </div>
+
+    <!-- ===== MAIN APP CONTAINER ===== -->
+    <div id="app-container" class="min-h-screen w-full transition-all duration-500">
+        
+        <!-- Loading Spinner -->
+        <div id="loading-spinner" class="fixed inset-0 flex items-center justify-center bg-white/50 backdrop-blur-sm z-[100] p-4">
+            <div class="text-center">
+                <svg class="animate-spin h-12 w-12 text-blue-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p id="loading-text" class="text-lg font-semibold text-gray-700 mt-4">Memuat profil...</p>
+            </div>
+        </div>
+
+        <!-- Konten Utama -->
+        <main id="main-content" class="container mx-auto max-w-2xl px-4 py-12 sm:py-20 flex flex-col items-center opacity-0 transition-opacity duration-500">
+            
+            <!-- 1. Profile Section -->
+            <header class="flex flex-col items-center text-center">
+                <div class="relative group">
+                    <img id="profile-pic" src="https://placehold.co/128x128/e0e0e0/7f7f7f?text=Foto" 
+                         alt="Foto Profil" 
+                         class="w-32 h-32 rounded-full object-cover border-4 shadow-lg"
+                         style="border-color: var(--primary-color);">
+                    <!-- Tombol edit foto (hanya owner) -->
+                    <label for="profile-pic-upload" id="profile-pic-edit-btn" class="hidden absolute inset-0 bg-black/50 rounded-full items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
+                        <i data-lucide="camera" class="w-8 h-8 text-white"></i>
+                        <input type="file" id="profile-pic-upload" accept="image/*" class="hidden">
+                    </label>
+                </div>
+                
+                <div class="flex items-center gap-2 mt-4">
+                    <h1 id="profile-name" class="text-3xl font-bold" style="color: var(--text-color);">Nama Anda</h1>
+                    <i id="verified-badge" data-lucide="shield-check" class="w-7 h-7 text-blue-500 fill-current hidden"></i>
+                </div>
+                
+                <p id="profile-bio" class="text-lg mt-2 max-w-md" style="color: var(--text-color);">Bio singkat Anda di sini.</p>
+                
+                <p id="page-views" class="text-sm mt-2 hidden items-center gap-1" style="color: var(--text-color); opacity: 0.7;">
+                    <i data-lucide="eye" class="w-4 h-4"></i> <span>Dilihat 0 kali</span>
+                </p>
+            </header>
+            
+            <!-- 2. Countdown Timer -->
+            <section id="countdown-section" class="w-full max-w-md mt-8 p-4 rounded-2xl shadow-lg hidden text-center" style="background-color: var(--primary-color);">
+                <h3 id="countdown-title" class="text-lg font-semibold mb-2" style="color: var(--text-color);">Hitung Mundur</h3>
+                <div id="countdown-timer" class="text-3xl font-bold" style="color: var(--text-color);">00:00:00:00</div>
+            </section>
+
+            <!-- 3. Embeds (YouTube, Spotify, Twitch) -->
+            <section id="embeds-section" class="w-full max-w-md mt-8 space-y-5">
+                <div id="video-embed-section" class="rounded-xl overflow-hidden shadow-lg hidden">
+                    <iframe id="video-iframe" class="w-full aspect-video" src="" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <div id="spotify-embed-section" class="rounded-xl overflow-hidden shadow-lg hidden">
+                    <iframe id="spotify-iframe" class="w-full" src="" height="380" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+                </div>
+                <div id="twitch-embed-section" class="rounded-xl overflow-hidden shadow-lg hidden">
+                    <iframe id="twitch-iframe" class="w-full aspect-video" src="" frameborder="0" allowfullscreen="true" scrolling="no"></iframe>
+                </div>
+            </section>
+            
+            <!-- 4. Donation Links (Fitur Baru) -->
+            <section id="donation-links-section" class="w-full max-w-md mt-8 hidden">
+                <h3 class="link-header">Dukung Saya</h3>
+                <div id="donation-links-list" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <!-- Link donasi dinamis -->
+                </div>
+            </section>
+
+            <!-- 5. Links Section -->
+            <section id="links-section" class="w-full max-w-md mt-8 space-y-4">
+                <!-- Headers, Thumbnails, dan Links dinamis di sini -->
+            </section>
+            
+            <!-- 6. Email Signup -->
+            <section id="email-signup-section" class="w-full max-w-md mt-8 p-6 rounded-2xl shadow-lg hidden" style="background-color: var(--primary-color);">
+                <h3 class="text-lg font-semibold text-center mb-3" style="color: var(--text-color);">Berlangganan Newsletter Saya</h3>
+                <form id="email-form" class="flex flex-col sm:flex-row gap-3">
+                    <input id="email-input" type="email" placeholder="Email Anda..." class="form-input flex-1 !rounded-full" required>
+                    <button type="submit" class="bg-blue-600 text-white font-semibold px-6 py-3 rounded-full hover:bg-blue-700 transition">Kirim</button>
+                </form>
+                <p id="email-success-msg" class="text-green-600 text-center mt-3 hidden">Terima kasih telah berlangganan!</p>
+            </section>
+            
+            <!-- 7. Footer -->
+            <footer class="text-center mt-12 w-full max-w-md">
+                <!-- Contact Button (Fitur Baru) -->
+                <button id="open-contact-btn" class="hidden mb-8 w-full btn-secondary !bg-gray-500 hover:!bg-gray-600">
+                    <i data-lucide="mail"></i> Kirim Pesan
+                </button>
+                
+                <div id="social-icons-section" class="flex justify-center items-center space-x-6">
+                    <!-- Ikon sosial dinamis -->
+                </div>
+                <p id="custom-footer" class="text-sm mt-8" style="color: var(--text-color); opacity: 0.7;">
+                    Ditenagai oleh BioLink
+                </p>
+            </footer>
+            
+        </main>
+    </div>
+
+    <!-- ===== MUSIC PLAYER POPUP ===== -->
+    <div id="music-player-popup" class="hidden fixed bottom-6 left-6 z-50 flex items-center group cursor-pointer">
+        <div id="music-icon-container" class="w-14 h-14 bg-white rounded-full shadow-2xl flex items-center justify-center text-blue-600 hover:scale-110 transition-transform">
+            <i data-lucide="music" class="w-7 h-7"></i>
+            <i data-lucide="pause" class="w-7 h-7 hidden"></i>
+        </div>
+        <div id="song-title-bubble" class="ml-3 bg-white shadow-2xl px-5 py-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+            <span id="song-title" class="font-semibold text-gray-800">Nama Lagu</span>
+        </div>
+        <audio id="audio-player" src=""></audio>
+    </div>
+
+    <!-- ===== OWNER-ONLY BUTTONS ===== -->
+    <div id="owner-controls" class="hidden fixed bottom-6 right-6 z-[101] space-x-3">
+        <button id="toggle-settings-btn" class="w-14 h-14 bg-blue-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:bg-blue-700 transition-transform hover:scale-110" title="Buka Pengaturan">
+            <i data-lucide="settings" class="w-7 h-7"></i>
+        </button>
+    </div>
+
+    <!-- ===== SETTINGS PANEL (v3.0 Redesign) ===== -->
+    <aside id="settings-panel" class="fixed top-0 right-0 w-full max-w-md h-full bg-white/90 backdrop-blur-lg shadow-2xl z-[110] p-6 overflow-y-auto transform translate-x-full transition-transform duration-300 text-gray-800">
+        <!-- Panel Header -->
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold">Pengaturan</h2>
+            <button id="close-settings-btn" class="text-gray-600 hover:text-gray-900"><i data-lucide="x" class="w-7 h-7"></i></button>
+        </div>
+        
+        <div id="save-notification" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-4 hidden">
+            <strong class="font-bold">Sukses!</strong> Perubahan disimpan.
+        </div>
+        
+        <!-- Panel Tabs -->
+        <div class="border-b border-gray-200 mb-6">
+             <nav class="flex space-x-1 overflow-x-auto pb-2 -mb-px text-sm sm:text-base">
+                <button class="tab-btn px-3 py-2 font-medium" data-tab="tab-share">Bagikan</button>
+                <button class="tab-btn px-3 py-2 font-medium" data-tab="tab-general">Umum</button>
+                <button class="tab-btn px-3 py-2 font-medium" data-tab="tab-links">Link</button>
+                <button class="tab-btn px-3 py-2 font-medium" data-tab="tab-style">Tampilan</button>
+                <button class="tab-btn px-3 py-2 font-medium" data-tab="tab-widgets">Widgets</button>
+                <button class="tab-btn px-3 py-2 font-medium" data-tab="tab-security">Keamanan</button>
+                <button class="tab-btn px-3 py-2 font-medium" data-tab="tab-advanced">Lanjutan</button>
+            </nav>
+        </div>
+
+        <!-- Konten Tab -->
+        
+        <!-- Tab 1: Share -->
+        <div id="tab-share" class="tab-content hidden space-y-4">
+            <h3 class="text-xl font-semibold mb-2">Bagikan & Preview</h3>
+            <input id="share-link-input" type="text" readonly class="form-input !bg-gray-100 mb-2">
+            <button id="copy-link-btn" class="btn-primary">Salin Link</button>
+            <button id="preview-btn" class="btn-secondary">
+                <i data-lucide="external-link"></i> Preview Mode Pengunjung
+            </button>
+            <div id="qrcode-container" class="flex justify-center p-4 bg-white border rounded-lg shadow-inner my-4">
+                <div id="qrcode" class="w-48 h-48"></div>
+            </div>
+            <div>
+                 <label for="setting-qrcode-color" class="form-label">Warna QR Code</label>
+                 <input type="color" id="setting-qrcode-color" class="w-full h-10 p-1 border rounded-lg" value="#000000">
+            </div>
+        </div>
+
+        <!-- Tab 2: General -->
+        <div id="tab-general" class="tab-content hidden space-y-4">
+             <h3 class="text-xl font-semibold mb-2">Info Umum</h3>
+             <div>
+                <label for="setting-name" class="form-label">Nama Tampilan</label>
+                <input type="text" id="setting-name" class="form-input" placeholder="Nama Anda">
+            </div>
+             <div>
+                <label for="setting-bio" class="form-label">Bio</label>
+                <textarea id="setting-bio" rows="3" class="form-input" placeholder="Bio singkat..."></textarea>
+            </div>
+             <div>
+                 <label class="form-label">Foto Profil</label>
+                 <label for="profile-pic-upload-panel" class="btn-upload">
+                     <i data-lucide="upload"></i> Upload Foto
+                 </label>
+                 <input type="file" id="profile-pic-upload-panel" accept="image/*" class="hidden">
+                 <p class="text-xs text-gray-500 mt-1 text-center">Atau tempel URL di bawah:</p>
+                 <input type="url" id="setting-pic-url" class="form-input mt-1" placeholder="https://...">
+             </div>
+             <div class="flex items-center">
+                <input id="setting-verified" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                <label for="setting-verified" class="ml-2 block text-sm font-medium">Tampilkan "Verified" Badge</label>
+             </div>
+             <h3 class="text-xl font-semibold mb-2 mt-6">SEO & Favicon</h3>
+             <div>
+                <label for="setting-seo-title" class="form-label">Judul Halaman (SEO)</label>
+                <input type="text" id="setting-seo-title" class="form-input" placeholder="Judul di tab browser">
+            </div>
+             <div>
+                <label for="setting-seo-desc" class="form-label">Deskripsi Halaman (SEO)</label>
+                <textarea id="setting-seo-desc" rows="2" class="form-input" placeholder="Deskripsi untuk Google..."></textarea>
+            </div>
+              <div>
+                 <label class="form-label">Favicon</label>
+                 <label for="favicon-upload-panel" class="btn-upload">
+                     <i data-lucide="upload"></i> Upload Favicon (.ico/.png)
+                 </label>
+                 <input type="file" id="favicon-upload-panel" accept=".ico,.png,image/png" class="hidden">
+                 <p class="text-xs text-gray-500 mt-1 text-center">Atau tempel URL di bawah:</p>
+                 <input type="url" id="setting-favicon" class="form-input mt-1" placeholder="https://...">
+             </div>
+            <button id="save-general-btn" class="btn-primary !bg-green-600 hover:!bg-green-700">Simpan Info Umum</button>
+        </div>
+        
+        <!-- Tab 3: Links -->
+        <div id="tab-links" class="tab-content hidden">
+            <h3 class="text-xl font-semibold mb-4">Kelola Link & Header</h3>
+            <div id="links-editor-list" class="space-y-3 mb-4">
+                <!-- Editor link dinamis di sini -->
+            </div>
+            <button id="add-link-btn" class="btn-primary mb-3">
+                <i data-lucide="plus"></i> Tambah Link Baru
+            </button>
+            <button id="add-header-btn" class="btn-secondary">
+                <i data-lucide="type"></i> Tambah Header
+            </button>
+        </div>
+        
+        <!-- Tab 4: Style -->
+        <div id="tab-style" class="tab-content hidden space-y-4">
+             <h3 class="text-xl font-semibold mb-2">Gaya & Tampilan</h3>
+             <div>
+                <label class="form-label">Tema</label>
+                <div class="grid grid-cols-2 gap-3"> <!-- Hapus 1 kolom, jadi grid-cols-2 -->
+                    <button class="theme-select-btn" data-theme="theme-light"><div class="w-full h-16 bg-gray-100 border-2 rounded-lg flex items-center justify-center">Terang</div></button>
+                    <button class="theme-select-btn" data-theme="theme-dark"><div class="w-full h-16 bg-gray-900 text-white border-2 rounded-lg flex items-center justify-center">Gelap</div></button>
+                    <button class="theme-select-btn" data-theme="theme-gradient"><div class="w-full h-16 bg-gradient-to-r from-blue-500 to-purple-600 text-white border-2 rounded-lg flex items-center justify-center">Gradien</div></button>
+                    <button class="theme-select-btn" data-theme="theme-minimalist"><div class="w-full h-16 bg-white border-2 border-gray-300 rounded-lg flex items-center justify-center">Minimalist</div></button>
+                </div>
+            </div>
+             <div>
+                 <label class="form-label">Background</label>
+                 <label for="bg-upload-panel" class="btn-upload"> <i data-lucide="upload"></i> Upload Background </label>
+                 <input type="file" id="bg-upload-panel" accept="image/*" class="hidden">
+                 <p class="text-xs text-gray-500 mt-1 text-center">Atau tempel URL:</p>
+                 <input type="url" id="setting-bg-image" class="form-input mt-1" placeholder="Kosongkan untuk pakai tema">
+             </div>
+             <div>
+                <label for="setting-font" class="form-label">Font</label>
+                <select id="setting-font" class="form-input">
+                    <option value="'Inter', sans-serif">Inter</option>
+                    <option value="'Poppins', sans-serif">Poppins</option>
+                    <option value="'Lobster', cursive">Lobster</option>
+                    <option value="'Roboto Slab', serif">Roboto Slab</option>
+                    <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
+                </select>
+            </div>
+             <div>
+                <label for="setting-button-style" class="form-label">Gaya Tombol Link</label>
+                <select id="setting-button-style" class="form-input">
+                    <option value="">Default (Solid)</option>
+                    <option value="link-style-outline">Outline (Garis)</option>
+                    <option value="link-style-softshadow">Soft Shadow</option>
+                </select>
+            </div>
+             <div>
+                <label for="setting-button-shape" class="form-label">Bentuk Tombol Link</label>
+                <select id="setting-button-shape" class="form-input">
+                    <option value="link-shape-pill">Kapsul (Pill)</option>
+                    <option value="link-shape-rounded">Setengah Bulat (Rounded)</option>
+                    <option value="link-shape-square">Kotak (Square)</option>
+                </select>
+            </div>
+             <div>
+                <label for="setting-font-size" class="form-label">Ukuran Font Nama & Bio</label>
+                <select id="setting-font-size" class="form-input">
+                    <option value="font-size-small">Kecil</option>
+                    <option value="font-size-medium">Sedang</option>
+                    <option value="font-size-large">Besar</option>
+                </select>
+            </div>
+             <div>
+                <label for="setting-brand-color" class="form-label">Warna Brand Kustom</label>
+                <input type="color" id="setting-brand-color" class="w-full h-10 p-1 border rounded-lg" value="#3b82f6">
+            </div>
+             <div>
+                <label for="setting-cursor" class="form-label">Kursor Kustom (URL .cur, .png)</label>
+                <input type="url" id="setting-cursor" class="form-input" placeholder="Kosongkan untuk default">
+                <p class="text-xs text-gray-500 mt-1">Contoh: 'url(https://.../kursor.png), auto'</p>
+            </div>
+            <button id="save-style-btn" class="btn-primary !bg-green-600 hover:!bg-green-700">Simpan Tampilan</button>
+        </div>
+        
+        <!-- Tab 5: Widgets -->
+        <div id="tab-widgets" class="tab-content hidden space-y-4">
+            <h3 class="text-xl font-semibold mb-2">Widgets</h3>
+            <fieldset class="form-fieldset">
+                <legend class="form-legend">Pemutar Musik</legend>
+                <input type="url" id="setting-song-url" class="form-input" placeholder="URL Lagu (.mp3)">
+                <input type="text" id="setting-song-title" class="form-input mt-2" placeholder="Judul Lagu">
+            </fieldset>
+            <fieldset class="form-fieldset">
+                <legend class="form-legend">Embed Video YouTube</legend>
+                <input type="url" id="setting-video-url" class="form-input" placeholder="URL Video YouTube">
+            </fieldset>
+            <fieldset class="form-fieldset">
+                <legend class="form-legend">Embed Spotify</legend>
+                <input type="url" id="setting-spotify-url" class="form-input" placeholder="URL Lagu/Playlist Spotify">
+            </fieldset>
+            <fieldset class="form-fieldset">
+                <legend class="form-legend">Embed Twitch</legend>
+                <input type="url" id="setting-twitch-url" class="form-input" placeholder="URL Channel Twitch (cth: https://twitch.tv/...)">
+            </fieldset>
+            <fieldset class="form-fieldset">
+                <legend class="form-legend">Countdown Timer</legend>
+                <input type="text" id="setting-countdown-title" class="form-input" placeholder="Nama Acara (cth: Rilis Album)">
+                <input type="datetime-local" id="setting-countdown-date" class="form-input mt-2">
+                <p class="text-xs text-gray-500 mt-1">Kosongkan tanggal untuk sembunyikan.</p>
+            </fieldset>
+            <button id="save-widgets-btn" class="btn-primary !bg-green-600 hover:!bg-green-700">Simpan Widgets</button>
+        </div>
+        
+        <!-- Tab 6: Security -->
+        <div id="tab-security" class="tab-content hidden space-y-4">
+            <h3 class="text-xl font-semibold mb-2">Keamanan & Akses</h3>
+            <fieldset class="form-fieldset">
+                <legend class="form-legend">Password Profil</legend>
+                <input type="text" id="setting-password" class="form-input" placeholder="Password...">
+                <p class="text-xs text-gray-500 mt-1">Kosongkan untuk menonaktifkan password.</p>
+            </fieldset>
+            <fieldset class="form-fieldset">
+                <legend class="form-legend">Peringatan Konten Sensitif</legend>
+                <div class="flex items-center">
+                    <input id="setting-sensitive" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                    <label for="setting-sensitive" class="ml-2 block text-sm font-medium">Aktifkan peringatan 18+</label>
+                </div>
+            </fieldset>
+            <button id="save-security-btn" class="btn-primary !bg-green-600 hover:!bg-green-700">Simpan Keamanan</button>
+        </div>
+
+        <!-- Tab 7: Advanced -->
+        <div id="tab-advanced" class="tab-content hidden space-y-4">
+             <h3 class="text-xl font-semibold mb-2">Lanjutan</h3>
+             <fieldset class="form-fieldset">
+                <legend class="form-legend">Formulir Email/Kontak</legend>
+                <div class="flex items-center">
+                    <input id="setting-email-signup" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                    <label for="setting-email-signup" class="ml-2 block text-sm font-medium">Aktifkan Email Signup</label>
+                </div>
+                <div class="flex items-center mt-2">
+                    <input id="setting-contact-form" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                    <label for="setting-contact-form" class="ml-2 block text-sm font-medium">Aktifkan Formulir Kontak</label>
+                </div>
+                <button id="download-emails-btn" class="btn-secondary !bg-gray-200 !text-gray-800 hover:!bg-gray-300 w-full mt-3 text-sm py-2">Download Daftar Email (.csv)</button>
+                <button id="view-messages-btn" class="btn-secondary !bg-gray-200 !text-gray-800 hover:!bg-gray-300 w-full mt-2 text-sm py-2">Lihat Pesan Kontak</button>
+             </fieldset>
+             <fieldset class="form-fieldset">
+                <legend class="form-legend">Link Donasi</legend>
+                <input type="url" id="donation-saweria" class="form-input" placeholder="Saweria URL">
+                <input type="url" id="donation-kofi" class="form-input mt-2" placeholder="Ko-fi URL">
+                <input type="url" id="donation-paypal" class="form-input mt-2" placeholder="PayPal.Me URL">
+             </fieldset>
+             <fieldset class="form-fieldset">
+                <legend class="form-legend">Ikon Sosial Media</legend>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="url" id="social-instagram" class="form-input" placeholder="Instagram URL">
+                    <input type="url" id="social-twitter" class="form-input" placeholder="X / Twitter URL">
+                    <input type="url" id="social-facebook" class="form-input" placeholder="Facebook URL">
+                    <input type="url" id="social-linkedin" class="form-input" placeholder="LinkedIn URL">
+                    <input type="url" id="social-github" class="form-input" placeholder="GitHub URL">
+                    <input type="url" id="social-tiktok" class="form-input" placeholder="TikTok URL">
+                </div>
+            </fieldset>
+             <fieldset class="form-fieldset">
+                <legend class="form-legend">Lain-lain</legend>
+                <div>
+                    <label for="setting-footer" class="form-label">Teks Footer Kustom</label>
+                    <input type="text" id="setting-footer" class="form-input" placeholder="© 2025 Nama Anda">
+                </div>
+                <div class="mt-2">
+                    <label class="form-label">Page Views</label>
+                    <div class="flex items-center justify-between">
+                        <p id="page-views-admin" class="text-lg font-bold text-gray-800">0 views</p>
+                        <button id="reset-views-btn" class="btn-danger text-xs">Reset Views</button>
+                    </div>
+                </div>
+                 <div class="flex items-center mt-3">
+                    <input id="setting-two-columns" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                    <label for="setting-two-columns" class="ml-2 block text-sm font-medium">Tampilkan Link 2 Kolom (Desktop)</label>
+                </div>
+            </fieldset>
+            <button id="save-advanced-btn" class="btn-primary !bg-green-600 hover:!bg-green-700">Simpan Lanjutan</button>
+        </div>
+        
+    </aside>
+
+    <!-- Overlay untuk panel setting -->
+    <div id="settings-overlay" class="hidden fixed inset-0 bg-black/40 z-[105] transition-opacity duration-300"></div>
+
+    <!-- ===== SCRIPT UTAMA (v4.1 - Fix Stuck Loading) ===== -->
+    <script type="module">
+        // --- 1. Inisialisasi Supabase ---
+        const SUPABASE_URL = 'https://qvrbqtkuqgiweaeyifns.supabase.co'; // URL ANDA SUDAH DI SINI
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2cmJxdGt1cWdpd2VhZXlpZm5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg1NzEzNTgsImV4cCI6MjA3NDE0NzM1OH0.dY9i0-ygzx6TA2fNDcNUzI6Vecbz-s198oLbhfGqnO4'; // KEY ANDA SUDAH DI SINI
+        
+        const { createClient } = supabase;
+        const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // --- Variabel Global ---
+        let currentUserId = null; 
+        let viewedProfileId = null; 
+        let isOwner = false; 
+        let profileData = {};
+        let profileSubscription = null;
+        let countdownInterval = null;
+        let currentIconInputTarget = null; // Untuk icon picker
+        let lucideIconNames = []; // Cache nama ikon
+
+        // --- DOM Elements ---
+        let dom = {};
+        const $ = (selector) => document.querySelector(selector);
+        const $$ = (selector) => document.querySelectorAll(selector);
+
+        // --- Fungsi Utama ---
+
+        async function handleAuth() {
+            const { data: { session }, error } = await _supabase.auth.getSession();
+
+            if (session?.user) {
+                console.log("User session found:", session.user.id);
+                currentUserId = session.user.id;
+                determineViewedProfile();
+            } else {
+                console.log("No session, signing in anonymously...");
+                const { data: anonUser, error: anonError } = await _supabase.auth.signInAnonymously();
+                if (anonError) {
+                    console.error("Error signing in anonymously:", anonError);
+                    $('#loading-text').textContent = `Gagal login anonim: ${anonError.message}`;
+                } else if (anonUser?.user) {
+                    console.log("Signed in anonymously:", anonUser.user.id);
+                    currentUserId = anonUser.user.id;
+                    determineViewedProfile();
+                }
+            }
+            
+            _supabase.auth.onAuthStateChange((event, session) => {
+                console.log('Auth state changed:', event, session);
+                if (event === 'SIGNED_IN' && session?.user.id !== currentUserId) {
+                    currentUserId = session.user.id;
+                    determineViewedProfile(); 
+                } else if (event === 'SIGNED_OUT') {
+                    currentUserId = null;
+                    handleAuth();
+                }
+            });
+        }
+
+        function determineViewedProfile() {
+            const urlParams = new URLSearchParams(window.location.search);
+            viewedProfileId = urlParams.get('profile') || currentUserId;
+            isOwner = (currentUserId === viewedProfileId);
+            
+            console.log(`Current User: ${currentUserId} | Viewed Profile: ${viewedProfileId} | Is Owner: ${isOwner}`);
+
+            if (isOwner) {
+                dom.ownerControls.classList.remove('hidden');
+                dom.profilePicEditBtn?.classList.remove('hidden');
+                dom.profilePicEditBtn?.classList.add('flex');
+            } else {
+                dom.ownerControls.classList.add('hidden');
+                 dom.profilePicEditBtn?.classList.add('hidden');
+                 dom.profilePicEditBtn?.classList.remove('flex');
+            }
+            
+            loadProfileData();
+        }
+
+        async function createDefaultProfile() {
+            const defaultData = {
+                user_id: viewedProfileId,
+                general: {
+                    name: 'Nama Anda', bio: 'Bio singkat Anda di sini.',
+                    picUrl: 'https://placehold.co/128x128/e0e0e0/7f7f7f?text=Foto',
+                    verified: false,
+                    seoTitle: 'Profil BioLink Saya',
+                    seoDescription: 'Semua link saya di satu tempat.',
+                    favicon: 'https://placehold.co/32x32/007bff/ffffff?text=B'
+                },
+                links: [
+                    { id: crypto.randomUUID(), type: 'link', title: 'Link Contoh 1 (Edit Saya)', url: '#', icon: 'link', animation: 'none', highlight: false, thumbnail: '', clicks: 0, scheduleStart: null, scheduleEnd: null },
+                    { id: crypto.randomUUID(), type: 'link', title: 'Link Contoh 2 (Edit Saya)', url: '#', icon: 'link', animation: 'none', highlight: false, thumbnail: '', clicks: 0, scheduleStart: null, scheduleEnd: null }
+                ],
+                style: {
+                    theme: 'theme-light', bgImage: '',
+                    font: "'Inter', sans-serif",
+                    buttonStyle: '', buttonShape: 'link-shape-pill',
+                    fontSize: 'font-size-medium', brandColor: '#3b82f6',
+                    cursor: ''
+                },
+                widgets: {
+                    songUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+                    songTitle: 'SoundHelix Song 1',
+                    videoUrl: '', spotifyUrl: '', twitchUrl: '',
+                    countdownTitle: '', countdownDate: ''
+                },
+                security: { password: '', sensitive: false },
+                advanced: {
+                    emailSignup: false, contactForm: false,
+                    footerText: 'Ditenagai oleh BioLink',
+                    socials: { instagram: '', twitter: '', facebook: '', linkedin: '', github: '', tiktok: '' },
+                    donations: { saweria: '', kofi: '', paypal: '' },
+                    twoColumns: false
+                }
+            };
+            try {
+                const { error } = await _supabase
+                    .from('biolinks')
+                    .insert(defaultData);
+                if (error) throw error;
+                console.log("Default profile created in Supabase.");
+                // **FIX:** Kembalikan data default agar bisa langsung di-render
+                return defaultData; 
+            } catch (e) {
+                console.error("Error creating default profile in Supabase:", e);
+                $('#loading-text').textContent = `Gagal membuat profil: ${e.message}`;
+                return null; // **FIX:** Kembalikan null jika gagal
+            }
+        }
+
+        function loadProfileData() {
+            if (profileSubscription) {
+                _supabase.removeChannel(profileSubscription);
+                profileSubscription = null;
+            }
+
+            // **FIX:** Langganan dulu, baru fetch
+            profileSubscription = _supabase.channel(`biolink_${viewedProfileId}`)
+                .on('postgres_changes', 
+                    { event: '*', schema: 'public', table: 'biolinks', filter: `user_id=eq.${viewedProfileId}` }, 
+                    payload => {
+                        console.log('Realtime update received:', payload);
+                         if (payload.new) {
+                            profileData = payload.new;
+                            
+                            // Hanya sembunyikan spinner JIKA BELUM TERSEMBUNYI
+                            if (!dom.loadingSpinner.classList.contains('hidden')) {
+                                dom.loadingSpinner.classList.add('hidden');
+                                dom.mainContent.classList.remove('opacity-0');
+                            }
+                            
+                            checkSecurity(profileData.security);
+                            renderProfileView(profileData);
+                            if (isOwner) renderSettingsPanel(profileData);
+                         } else if (payload.eventType === 'DELETE') {
+                             $('#loading-text').textContent = 'Profil ini telah dihapus.';
+                             dom.loadingSpinner.classList.remove('hidden');
+                             dom.mainContent.classList.add('opacity-0');
+                         }
+                    }
+                )
+                .subscribe();
+
+            fetchInitialProfile();
+        }
+
+        async function fetchInitialProfile() {
+             try {
+                const { data, error } = await _supabase
+                    .from('biolinks')
+                    .select('*')
+                    .eq('user_id', viewedProfileId)
+                    .single(); 
+
+                if (error && error.code !== 'PGRST116') { // Abaikan error 'not found'
+                    throw error;
+                }
+
+                if (data) {
+                    // **FIX:** Profil ditemukan, langsung render
+                    dom.loadingSpinner.classList.add('hidden');
+                    dom.mainContent.classList.remove('opacity-0');
+                    profileData = data;
+                    console.log("Profile data loaded from Supabase:", profileData);
+                    checkSecurity(profileData.security);
+                    renderProfileView(profileData);
+                    if (isOwner) {
+                         renderSettingsPanel(profileData);
+                         updateAdminStats(); 
+                    } else {
+                        logPageView();
+                    }
+                } else {
+                    // **FIX:** Profil tidak ditemukan
+                    console.log("No such profile in Supabase!");
+                    if (isOwner) {
+                        console.log("Creating default profile for owner...");
+                        // Panggil createDefaultProfile DAN TUNGGU DATANYA
+                        const defaultData = await createDefaultProfile(); 
+                        if (defaultData) {
+                            // SEKARANG render dengan data default
+                            dom.loadingSpinner.classList.add('hidden');
+                            dom.mainContent.classList.remove('opacity-0');
+                            profileData = defaultData;
+                            console.log("Default profile created and rendered.");
+                            
+                            // Perlu memanggil ini secara manual karena listener mungkin tidak menangkap data baru
+                            checkSecurity(profileData.security);
+                            renderProfileView(profileData);
+                            renderSettingsPanel(profileData);
+                            updateAdminStats();
+                        }
+                    } else {
+                        $('#loading-text').textContent = 'Profil tidak ditemukan.';
+                        // Jangan sembunyikan spinner, biarkan tampilkan error
+                    }
+                }
+            } catch (error) {
+                console.error("Error loading profile data from Supabase:", error);
+                 $('#loading-text').innerHTML = `Gagal memuat profil. <br><b class="text-red-600">Error: ${error.message}</b> <br> Cek koneksi atau setup SQL Supabase Anda.`;
+                // Jangan sembunyikan spinner, biarkan tampilkan error
+            }
+        }
+
+        // --- 5. Fungsi Keamanan (Password, Sensitive) ---
+        
+        function checkSecurity(security) {
+            if (isOwner || !security || (!security.password && !security.sensitive)) {
+                dom.modalOverlay.classList.add('hidden'); 
+                return;
+            }
+
+            if (security.password) {
+                const savedPass = sessionStorage.getItem(`pass_${viewedProfileId}`);
+                if (savedPass === security.password) {
+                    // Lanjutkan
+                } else {
+                    dom.modalOverlay.classList.remove('hidden');
+                    dom.passwordModal.classList.remove('hidden');
+                    dom.sensitiveModal.classList.add('hidden');
+                    return; 
+                }
+            }
+            
+            if (security.sensitive) {
+                const agreed = sessionStorage.getItem(`sensitive_${viewedProfileId}`);
+                if (agreed === 'true') {
+                    return;
+                }
+                dom.modalOverlay.classList.remove('hidden');
+                dom.passwordModal.classList.add('hidden');
+                dom.sensitiveModal.classList.remove('hidden');
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+                return;
+            }
+        }
+        
+        function handlePasswordSubmit(e) {
+            e.preventDefault();
+            const pass = dom.passwordInput.value;
+            if (pass === profileData.security.password) {
+                sessionStorage.setItem(`pass_${viewedProfileId}`, pass);
+                dom.passwordModal.classList.add('hidden');
+                dom.passwordError.classList.add('hidden');
+                checkSecurity(profileData.security);
+            } else {
+                dom.passwordError.classList.remove('hidden');
+            }
+        }
+        
+        function handleSensitiveConfirm() {
+            sessionStorage.setItem(`sensitive_${viewedProfileId}`, 'true');
+            dom.modalOverlay.classList.add('hidden');
+            dom.sensitiveModal.classList.add('hidden');
+        }
+
+        // --- 6. Fungsi Upload File (Supabase Storage) ---
+        
+        async function handleFileUpload(file, bucket, pathPrefix = '') {
+            if (!file) return null;
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${pathPrefix}${Date.now()}.${fileExt}`;
+            const filePath = `${currentUserId}/${fileName}`; 
+
+            try {
+                $('#loading-text').textContent = `Mengupload ${file.name}...`;
+                dom.loadingSpinner.classList.remove('hidden');
+
+                const { error: uploadError } = await _supabase.storage
+                    .from(bucket)
+                    .upload(filePath, file);
+
+                if (uploadError) throw uploadError;
+
+                const { data } = _supabase.storage
+                    .from(bucket)
+                    .getPublicUrl(filePath);
+                
+                dom.loadingSpinner.classList.add('hidden');
+                console.log(`File uploaded to ${bucket}:`, data.publicUrl);
+                return data.publicUrl;
+
+            } catch (error) {
+                console.error('Error uploading file:', error);
+                 $('#loading-text').textContent = `Gagal upload: ${error.message}. Cek RLS Storage di Supabase.`;
+                 setTimeout(() => dom.loadingSpinner.classList.add('hidden'), 3000); 
+                return null;
+            }
+        }
+
+        // --- 7. Fungsi Render Tampilan ---
+
+        function renderProfileView(data) {
+            const { general, links, style, widgets, advanced } = data;
+            
+            document.body.className = `antialiased ${style.fontSize || 'font-size-medium'}`;
+            document.documentElement.style.setProperty('--font-family', style.font || "'Inter', sans-serif");
+            document.documentElement.style.setProperty('--custom-cursor', style.cursor ? `url(${style.cursor}), auto` : 'auto');
+            document.documentElement.style.setProperty('--brand-color', style.brandColor || '#3b82f6');
+            document.documentElement.style.setProperty('--brand-color-semi-transparent', hexToRgba(style.brandColor || '#3b82f6', 0.5));
+            document.body.classList.remove('theme-light', 'theme-dark', 'theme-gradient', 'theme-minimalist');
+            document.body.classList.add(style.theme || 'theme-light');
+            dom.appContainer.style.backgroundImage = style.bgImage ? `url(${style.bgImage})` : 'none';
+            
+            $('#seo-title').textContent = general.seoTitle || `${general.name} | BioLink`;
+            $('#seo-description').setAttribute('content', general.seoDescription || 'Semua link saya di satu tempat.');
+            $('#favicon').setAttribute('href', general.favicon || 'https://placehold.co/32x32/007bff/ffffff?text=B');
+
+            dom.profilePic.src = general.picUrl || 'https://placehold.co/128x128/e0e0e0/7f7f7f?text=Foto';
+            dom.profileName.textContent = general.name || 'Nama Anda';
+            dom.profileBio.textContent = general.bio || 'Bio Anda';
+            dom.verifiedBadge.classList.toggle('hidden', !general.verified);
+
+            dom.linksSection.innerHTML = '';
+            dom.linksSection.className = `w-full max-w-md mt-8 space-y-4 ${advanced.twoColumns ? 'sm:links-2-columns' : ''}`;
+            if (links && links.length > 0) {
+                links.forEach(link => {
+                    const now = new Date().getTime();
+                    const start = link.scheduleStart ? new Date(link.scheduleStart).getTime() : 0;
+                    const end = link.scheduleEnd ? new Date(link.scheduleEnd).getTime() : Infinity;
+                    if (now < start || now > end) return; 
+
+                    if (link.type === 'header') {
+                        const headerEl = document.createElement('h2');
+                        headerEl.className = 'link-header';
+                        headerEl.textContent = link.title;
+                        dom.linksSection.appendChild(headerEl);
+                    }
+                    else if (link.type === 'link') {
+                        const animationClass = link.animation !== 'none' ? `animate-${link.animation}` : '';
+                        const highlightClass = link.highlight ? 'animate-highlight-glow' : '';
+                        const linkEl = document.createElement('a');
+                        linkEl.href = link.url;
+                        linkEl.target = '_blank';
+                        linkEl.rel = 'noopener noreferrer';
+                        linkEl.dataset.linkId = link.id;
+                        linkEl.className = `link-button w-full p-3 shadow-lg flex items-center relative font-semibold ${style.buttonShape || 'link-shape-pill'} ${style.buttonStyle || ''} ${animationClass} ${highlightClass}`;
+                        
+                        let thumbnailHTML = '';
+                        if (link.thumbnail) {
+                            thumbnailHTML = `<img src="${link.thumbnail}" alt="thumbnail" class="link-thumbnail">`;
+                        }
+                        
+                        linkEl.innerHTML = `
+                            ${thumbnailHTML}
+                            <i data-lucide="${link.icon || 'link'}" class="${link.thumbnail ? '' : 'absolute left-5'} w-5 h-5"></i>
+                            <span class="text-center flex-1 ${link.thumbnail ? '' : 'ml-5'}">${link.title}</span>
+                            ${isOwner ? `<span class="absolute right-5 text-xs font-normal text-gray-500 flex items-center gap-1"><i data-lucide="bar-chart-2" class="w-3 h-3"></i> ${link.clicks || 0}</span>` : ''}
+                        `;
+                        linkEl.addEventListener('click', handleLinkClick);
+                        dom.linksSection.appendChild(linkEl);
+                    }
+                });
+            }
+
+            // Render Widgets
+            dom.audioPlayer.src = widgets.songUrl || '';
+            dom.songTitle.textContent = widgets.songTitle || 'Musik Tidak Tersedia';
+            dom.musicPopup.classList.toggle('hidden', !widgets.songUrl);
+            const embedUrl = widgets.videoUrl ? convertToEmbedUrl(widgets.videoUrl, 'youtube') : null;
+            dom.videoIframe.src = embedUrl || '';
+            dom.videoEmbedSection.classList.toggle('hidden', !embedUrl);
+            const spotifyUrl = widgets.spotifyUrl ? convertToEmbedUrl(widgets.spotifyUrl, 'spotify') : null;
+            dom.spotifyIframe.src = spotifyUrl || '';
+            dom.spotifyEmbedSection.classList.toggle('hidden', !spotifyUrl);
+            const twitchUrl = widgets.twitchUrl ? convertToEmbedUrl(widgets.twitchUrl, 'twitch') : null;
+            dom.twitchIframe.src = twitchUrl || '';
+            dom.twitchEmbedSection.classList.toggle('hidden', !twitchUrl);
+            if (countdownInterval) clearInterval(countdownInterval);
+            if (widgets.countdownDate) {
+                dom.countdownTitle.textContent = widgets.countdownTitle || 'Hitung Mundur';
+                const targetDate = new Date(widgets.countdownDate).getTime();
+                const updateCountdown = () => {
+                    const now = new Date().getTime();
+                    const distance = targetDate - now;
+                    if (distance < 0) {
+                        clearInterval(countdownInterval);
+                        dom.countdownTimer.textContent = "ACARA TELAH SELESAI";
+                    } else {
+                        const d = Math.floor(distance / (1000 * 60 * 60 * 24));
+                        const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                        const s = Math.floor((distance % (1000 * 60)) / 1000);
+                        dom.countdownTimer.textContent = `${d}h : ${h}j : ${m}m : ${s}d`;
+                    }
+                };
+                updateCountdown();
+                countdownInterval = setInterval(updateCountdown, 1000);
+                dom.countdownSection.classList.remove('hidden');
+            } else {
+                dom.countdownSection.classList.add('hidden');
+            }
+
+            // Render Donation Links
+            const donationLinksList = $('#donation-links-list');
+            donationLinksList.innerHTML = '';
+            let hasDonation = false;
+            const donationMap = { saweria: 'Coffee', kofi: 'Gift', paypal: 'Paypal' }; 
+            if (advanced.donations) {
+                for (const [key, icon] of Object.entries(donationMap)) {
+                    if (advanced.donations[key]) {
+                        hasDonation = true;
+                        const btn = document.createElement('a');
+                        btn.href = advanced.donations[key];
+                        btn.target = '_blank';
+                        btn.className = 'link-button p-3 rounded-lg shadow flex flex-col items-center justify-center text-center !bg-opacity-80 hover:!bg-opacity-100';
+                        btn.innerHTML = `<i data-lucide="${icon}" class="w-6 h-6 mb-1"></i><span class="text-xs font-medium">${key.charAt(0).toUpperCase() + key.slice(1)}</span>`;
+                        donationLinksList.appendChild(btn);
+                    }
+                }
+            }
+            $('#donation-links-section').classList.toggle('hidden', !hasDonation);
+
+            // Render Advanced
+            dom.emailSignupSection.classList.toggle('hidden', !advanced.emailSignup);
+            $('#open-contact-btn').classList.toggle('hidden', !advanced.contactForm);
+            dom.customFooter.textContent = advanced.footerText || '';
+            dom.socialIconsSection.innerHTML = '';
+            const socialMap = {
+                instagram: 'instagram', twitter: 'twitter', facebook: 'facebook',
+                linkedin: 'linkedin', github: 'github', tiktok: 'tiktok'
+            };
+            if(advanced.socials) {
+                for (const [key, icon] of Object.entries(socialMap)) {
+                    if (advanced.socials[key]) {
+                        const socialEl = document.createElement('a');
+                        socialEl.href = advanced.socials[key];
+                        socialEl.target = '_blank';
+                        socialEl.className = 'hover:scale-125 transition-transform';
+                        socialEl.style.color = 'var(--text-color)';
+                        socialEl.innerHTML = `<i data-lucide="${icon}" class="w-7 h-7"></i>`;
+                        dom.socialIconsSection.appendChild(socialEl);
+                    }
+                }
+            }
+            
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        
+        // --- 8. Fungsi Render Panel Admin ---
+        
+        function renderSettingsPanel(data) {
+            const { general, links, style, widgets, security, advanced } = data;
+            
+            // Tab Share
+            const shareUrl = `${window.location.origin}${window.location.pathname}?profile=${viewedProfileId}`;
+            dom.shareLinkInput.value = shareUrl;
+            dom.qrcodeEl.innerHTML = '';
+            new QRCode(dom.qrcodeEl, { 
+                text: shareUrl, width: 192, height: 192,
+                colorDark: $('#setting-qrcode-color').value || '#000000',
+                colorLight: '#ffffff'
+            });
+            $('#setting-qrcode-color').value = style.qrColor || '#000000';
+
+            // Tab General
+            $('#setting-name').value = general.name;
+            $('#setting-bio').value = general.bio;
+            $('#setting-pic-url').value = general.picUrl;
+            $('#setting-verified').checked = general.verified;
+            $('#setting-seo-title').value = general.seoTitle;
+            $('#setting-seo-desc').value = general.seoDescription;
+            $('#setting-favicon').value = general.favicon;
+            
+            // Tab Links
+            const linksEditorList = $('#links-editor-list');
+            linksEditorList.innerHTML = '';
+            links.forEach((link, index) => {
+                const editorEl = document.createElement('div');
+                editorEl.className = 'p-4 border rounded-lg bg-gray-50';
+                editorEl.dataset.linkId = link.id;
+                editorEl.dataset.linkType = link.type;
+                
+                if (link.type === 'header') {
+                    editorEl.innerHTML = `
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-semibold text-gray-700">Header</span>
+                            <button class="btn-delete-link btn-danger p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                        <input type="text" class="setting-link-title form-input" value="${link.title}" placeholder="Judul Header">
+                    `;
+                } else {
+                    editorEl.innerHTML = `
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="font-semibold text-gray-700">Link</span>
+                            <button class="btn-delete-link btn-danger p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                        <div class="space-y-2">
+                            <input type="text" class="setting-link-title form-input" value="${link.title}" placeholder="Judul Link">
+                            <input type="url" class="setting-link-url form-input" value="${link.url}" placeholder="URL">
+                            
+                            <label class="form-label text-xs mt-2">Thumbnail Link</label>
+                            <label class="btn-upload text-sm !py-1.5">
+                                <i data-lucide="upload"></i> Upload Thumbnail
+                                <input type="file" class="setting-link-thumbnail-upload hidden" accept="image/*">
+                            </label>
+                            <input type="url" class="setting-link-thumbnail form-input" value="${link.thumbnail || ''}" placeholder="Atau tempel URL thumbnail">
+
+                            <label class="form-label text-xs mt-2">Ikon Link</label>
+                            <div class="flex gap-2">
+                                <input type="text" class="setting-link-icon flex-1 form-input" value="${link.icon}" placeholder="Ikon Lucide">
+                                <button class="btn-open-icon-picker btn-secondary !w-auto px-3" title="Pilih Ikon">
+                                    <i data-lucide="smile-plus" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                            
+                            <label class="form-label text-xs mt-2">Animasi & Jadwal</label>
+                            <select class="setting-link-animation form-input">
+                                <option value="none" ${link.animation === 'none' ? 'selected' : ''}>Animasi: Diam</option>
+                                <option value="pulse-slow" ${link.animation === 'pulse-slow' ? 'selected' : ''}>Animasi: Denyut</option>
+                                <option value="shake" ${link.animation === 'shake' ? 'selected' : ''}>Animasi: Getar</option>
+                                <option value="bounce-fast" ${link.animation === 'bounce-fast' ? 'selected' : ''}>Animasi: Pantul</option>
+                            </select>
+                            <div class="flex items-center">
+                                <input id="highlight-${link.id}" type="checkbox" class="setting-link-highlight h-4 w-4 text-blue-600 border-gray-300 rounded" ${link.highlight ? 'checked' : ''}>
+                                <label for="highlight-${link.id}" class="ml-2 block text-sm">Prioritaskan (Highlight Glow)</label>
+                            </div>
+                            
+                            <h4 class="text-xs font-medium pt-2 text-gray-600">Jadwal Tampil (Opsional)</h4>
+                            <div class="flex gap-2 text-xs">
+                                <input type="datetime-local" class="setting-link-schedule-start form-input !text-xs !p-1" value="${link.scheduleStart || ''}" title="Mulai Tampil">
+                                <input type="datetime-local" class="setting-link-schedule-end form-input !text-xs !p-1" value="${link.scheduleEnd || ''}" title="Berhenti Tampil">
+                            </div>
+                        </div>
+                    `;
+                }
+                linksEditorList.appendChild(editorEl);
+            });
+            
+            // Tab Style
+            $$('.theme-select-btn').forEach(btn => btn.classList.toggle('ring-2', btn.dataset.theme === style.theme));
+            $('#setting-bg-image').value = style.bgImage || '';
+            $('#setting-font').value = style.font || "'Inter', sans-serif";
+            $('#setting-button-style').value = style.buttonStyle || '';
+            $('#setting-button-shape').value = style.buttonShape || 'link-shape-pill';
+            $('#setting-font-size').value = style.fontSize || 'font-size-medium';
+            $('#setting-brand-color').value = style.brandColor || '#3b82f6';
+            $('#setting-cursor').value = style.cursor || '';
+            
+            // Tab Widgets
+            $('#setting-song-url').value = widgets.songUrl || '';
+            $('#setting-song-title').value = widgets.songTitle || '';
+            $('#setting-video-url').value = widgets.videoUrl || '';
+            $('#setting-spotify-url').value = widgets.spotifyUrl || '';
+            $('#setting-twitch-url').value = widgets.twitchUrl || '';
+            $('#setting-countdown-title').value = widgets.countdownTitle || '';
+            $('#setting-countdown-date').value = widgets.countdownDate || '';
+
+            // Tab Security
+            $('#setting-password').value = security.password || '';
+            $('#setting-sensitive').checked = security.sensitive || false;
+
+            // Tab Advanced
+            $('#setting-email-signup').checked = advanced.emailSignup || false;
+            $('#setting-contact-form').checked = advanced.contactForm || false;
+            $('#setting-footer').value = advanced.footerText || '';
+            $('#donation-saweria').value = advanced.donations?.saweria || '';
+            $('#donation-kofi').value = advanced.donations?.kofi || '';
+            $('#donation-paypal').value = advanced.donations?.paypal || '';
+            $('#setting-two-columns').checked = advanced.twoColumns || false;
+            if(advanced.socials) {
+                for (const key of ['instagram', 'twitter', 'facebook', 'linkedin', 'github', 'tiktok']) {
+                    $(`#social-${key}`).value = advanced.socials[key] || '';
+                }
+            }
+
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        // --- 9. Fungsi Simpan & Aksi ---
+
+        function showSaveNotification() {
+            dom.saveNotification.classList.remove('hidden');
+            setTimeout(() => dom.saveNotification.classList.add('hidden'), 3000);
+        }
+
+        async function saveAllSettings() {
+            // Dapatkan data dari setiap tab
+            const general = {
+                name: $('#setting-name').value, bio: $('#setting-bio').value,
+                picUrl: $('#setting-pic-url').value, verified: $('#setting-verified').checked,
+                seoTitle: $('#setting-seo-title').value, seoDescription: $('#setting-seo-desc').value,
+                favicon: $('#setting-favicon').value
+            };
+            
+            const links = [];
+            $$('#links-editor-list > div').forEach(editorEl => {
+                const id = editorEl.dataset.linkId;
+                const type = editorEl.dataset.linkType;
+                const title = editorEl.querySelector('.setting-link-title').value;
+                if (type === 'header') {
+                    links.push({ id, type, title });
+                } else {
+                    links.push({
+                        id, type, title,
+                        url: editorEl.querySelector('.setting-link-url').value,
+                        thumbnail: editorEl.querySelector('.setting-link-thumbnail').value,
+                        icon: editorEl.querySelector('.setting-link-icon').value,
+                        animation: editorEl.querySelector('.setting-link-animation').value,
+                        highlight: editorEl.querySelector('.setting-link-highlight').checked,
+                        clicks: profileData.links.find(l => l.id === id)?.clicks || 0, // Pertahankan clicks
+                        scheduleStart: editorEl.querySelector('.setting-link-schedule-start').value || null,
+                        scheduleEnd: editorEl.querySelector('.setting-link-schedule-end').value || null,
+                    });
+                }
+            });
+
+            const style = {
+                theme: $('.theme-select-btn.ring-2')?.dataset.theme || 'theme-light',
+                bgImage: $('#setting-bg-image').value,
+                font: $('#setting-font').value,
+                buttonStyle: $('#setting-button-style').value,
+                buttonShape: $('#setting-button-shape').value,
+                fontSize: $('#setting-font-size').value,
+                brandColor: $('#setting-brand-color').value,
+                qrColor: $('#setting-qrcode-color').value,
+                cursor: $('#setting-cursor').value
+            };
+            
+            const widgets = {
+                songUrl: $('#setting-song-url').value, songTitle: $('#setting-song-title').value,
+                videoUrl: $('#setting-video-url').value, spotifyUrl: $('#setting-spotify-url').value,
+                twitchUrl: $('#setting-twitch-url').value,
+                countdownTitle: $('#setting-countdown-title').value, countdownDate: $('#setting-countdown-date').value
+            };
+            
+            const security = {
+                password: $('#setting-password').value,
+                sensitive: $('#setting-sensitive').checked
+            };
+            
+            const advanced = {
+                emailSignup: $('#setting-email-signup').checked,
+                contactForm: $('#setting-contact-form').checked,
+                footerText: $('#setting-footer').value,
+                socials: {
+                    instagram: $('#social-instagram').value, twitter: $('#social-twitter').value,
+                    facebook: $('#social-facebook').value, linkedin: $('#social-linkedin').value,
+                    github: $('#social-github').value, tiktok: $('#social-tiktok').value,
+                },
+                donations: {
+                    saweria: $('#donation-saweria').value,
+                    kofi: $('#donation-kofi').value,
+                    paypal: $('#donation-paypal').value,
+                },
+                twoColumns: $('#setting-two-columns').checked
+            };
+            
+            const fullData = { 
+                user_id: currentUserId, general, links, style, widgets, security, advanced 
+            };
+            
+            try {
+                const { error } = await _supabase
+                    .from('biolinks')
+                    .update(fullData)
+                    .eq('user_id', currentUserId);
+                 if (error) throw error;
+                showSaveNotification();
+            } catch (e) { console.error("Error saving settings to Supabase:", e); }
+        }
+
+        async function addLink() {
+            const newLink = {
+                id: crypto.randomUUID(), type: 'link',
+                title: 'Link Baru', url: '#', icon: 'link',
+                animation: 'none', highlight: false, thumbnail: '', clicks: 0,
+                scheduleStart: null, scheduleEnd: null
+            };
+            const updatedLinks = [...profileData.links, newLink];
+            try {
+                const { error } = await _supabase.from('biolinks').update({ links: updatedLinks }).eq('user_id', currentUserId);
+                if (error) throw error;
+            } catch(e) { console.error("Error adding link:", e); }
+        }
+        
+        async function addHeader() {
+            const newHeader = {
+                id: crypto.randomUUID(), type: 'header',
+                title: 'Judul Kategori Baru'
+            };
+            const updatedLinks = [...profileData.links, newHeader];
+            try {
+                const { error } = await _supabase.from('biolinks').update({ links: updatedLinks }).eq('user_id', currentUserId);
+                if (error) throw error;
+            } catch(e) { console.error("Error adding header:", e); }
+        }
+        
+        async function deleteLink(linkId) {
+            const linkToDelete = profileData.links.find(l => l.id === linkId);
+            if (linkToDelete && confirm(`Yakin ingin menghapus "${linkToDelete.title}"?`)) {
+                const updatedLinks = profileData.links.filter(l => l.id !== linkId);
+                try {
+                    const { error } = await _supabase.from('biolinks').update({ links: updatedLinks }).eq('user_id', currentUserId);
+                    if (error) throw error;
+                    showSaveNotification();
+                } catch(e) { console.error("Error deleting link:", e); }
+            }
+        }
+        
+        async function handleLinkClick(e) {
+            if (isOwner) e.preventDefault(); 
+            
+            const linkEl = e.currentTarget;
+            const linkId = linkEl.dataset.linkId;
+            const targetUrl = linkEl.href;
+            
+            const newLinks = profileData.links.map(link => {
+                if (link.id === linkId) {
+                    return { ...link, clicks: (link.clicks || 0) + 1 };
+                }
+                return link;
+            });
+
+            _supabase.from('biolinks').update({ links: newLinks }).eq('user_id', currentUserId)
+                .then(({ error }) => {
+                    if (error) console.error("Error updating click count:", error);
+                });
+        }
+
+        async function handleEmailSubmit(e) {
+            e.preventDefault();
+            const email = dom.emailInput.value;
+            if (!email) return;
+            try {
+                const { error } = await _supabase.from('subscribers').insert({
+                    profile_id: viewedProfileId,
+                    email: email
+                });
+                if (error) throw error;
+                
+                dom.emailSuccessMsg.classList.remove('hidden');
+                dom.emailInput.value = '';
+                setTimeout(() => dom.emailSuccessMsg.classList.add('hidden'), 3000);
+            } catch (e) { console.error("Error saving email:", e); }
+        }
+        
+        async function downloadEmails() {
+            try {
+                const { data, error } = await _supabase.from('subscribers')
+                    .select('email, created_at')
+                    .eq('profile_id', currentUserId);
+                if (error) throw error;
+                
+                let csvContent = "data:text/csv;charset=utf-t8,Email,CollectedAt\n";
+                data.forEach(row => {
+                    csvContent += `${row.email},${row.created_at}\n`;
+                });
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `emails_${viewedProfileId}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (e) { console.error("Error downloading emails:", e); }
+        }
+
+        // --- 10. Fungsi Statistik Admin ---
+        async function logPageView() {
+            try {
+                const { error } = await _supabase.rpc('increment_page_view', { page_user_id: viewedProfileId });
+                if (error) throw error;
+                console.log("Page view logged.");
+            } catch (e) { console.error("Error logging page view:", e); }
+        }
+
+        async function updateAdminStats() {
+            try {
+                const { data, error } = await _supabase
+                    .from('page_views')
+                    .select('view_count')
+                    .eq('user_id', currentUserId)
+                    .single();
+                
+                const count = data ? data.view_count : 0;
+                
+                $('#page-views').classList.remove('hidden');
+                $('#page-views').querySelector('span').textContent = `Dilihat ${count} kali`;
+                $('#page-views-admin').textContent = `${count} views`;
+            } catch(e) {
+                console.error("Error getting page view count:", e);
+                $('#page-views-admin').textContent = "Gagal hitung";
+            }
+        }
+        
+        async function resetViews() {
+            if (confirm("Yakin ingin mereset page views menjadi 0?")) {
+                try {
+                    const { error } = await _supabase
+                        .from('page_views')
+                        .update({ view_count: 0 })
+                        .eq('user_id', currentUserId);
+                    if (error) throw error;
+                    updateAdminStats(); 
+                } catch(e) { console.error("Error resetting views:", e); }
+            }
+        }
+
+        // --- 11. Fungsi Baru (Icon Picker, Kontak, Upload) ---
+
+        async function loadLucideIcons() {
+             try {
+                if (typeof lucide !== 'undefined' && lucide.icons) {
+                    lucideIconNames = Object.keys(lucide.icons);
+                    renderIconList(lucideIconNames);
+                } else {
+                    console.warn("Lucide icon list not available.");
+                }
+             } catch (e) { console.error("Error loading icon list:", e); }
+        }
+        
+        function renderIconList(iconNames) {
+            const listEl = $('#icon-list');
+            listEl.innerHTML = '';
+            iconNames.forEach(name => {
+                const btn = document.createElement('button');
+                btn.className = 'p-2 rounded-lg hover:bg-gray-200 flex items-center justify-center';
+                btn.dataset.iconName = name;
+                btn.title = name;
+                btn.innerHTML = `<i data-lucide="${name}" class="w-5 h-5"></i>`;
+                listEl.appendChild(btn);
+            });
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+        
+        function filterIcons() {
+            const query = $('#icon-search-input').value.toLowerCase();
+            const filteredNames = lucideIconNames.filter(name => name.includes(query));
+            renderIconList(filteredNames);
+        }
+
+        function openIconPicker(inputTarget) {
+            currentIconInputTarget = inputTarget;
+            dom.modalOverlay.classList.remove('hidden');
+            dom.iconPickerModal.classList.remove('hidden');
+            $('#icon-search-input').focus();
+        }
+        
+        function selectIcon(iconName) {
+            if (currentIconInputTarget) {
+                currentIconInputTarget.value = iconName;
+                 const changeEvent = new Event('change', { bubbles: true });
+                 currentIconInputTarget.dispatchEvent(changeEvent);
+            }
+            closeIconPicker();
+        }
+
+        function closeIconPicker() {
+            dom.modalOverlay.classList.add('hidden');
+            dom.iconPickerModal.classList.add('hidden');
+             currentIconInputTarget = null;
+        }
+
+        function openContactForm() {
+             dom.modalOverlay.classList.remove('hidden');
+             dom.contactModal.classList.remove('hidden');
+        }
+        
+        function closeContactForm() {
+             dom.modalOverlay.classList.add('hidden');
+             dom.contactModal.classList.add('hidden');
+             dom.contactForm.reset();
+             $('#contact-success-msg').classList.add('hidden');
+        }
+
+        async function handleContactSubmit(e) {
+            e.preventDefault();
+            const message = $('#contact-message').value;
+            const email = $('#contact-email').value || null; 
+            
+            try {
+                const { error } = await _supabase.from('contacts').insert({
+                    profile_id: viewedProfileId, 
+                    sender_email: email,
+                    message: message
+                });
+                if (error) throw error;
+                $('#contact-success-msg').classList.remove('hidden');
+                 dom.contactForm.reset();
+                 setTimeout(closeContactForm, 3000); 
+            } catch (error) {
+                 console.error("Error sending contact message:", error);
+                 alert(`Gagal mengirim pesan: ${error.message}`);
+            }
+        }
+        
+        async function viewContactMessages() {
+             try {
+                 const { data, error } = await _supabase
+                    .from('contacts')
+                    .select('sender_email, message, created_at')
+                    .eq('profile_id', currentUserId) 
+                    .order('created_at', { ascending: false }); 
+                 if (error) throw error;
+                 
+                 if (data.length === 0) {
+                     alert("Belum ada pesan masuk.");
+                     return;
+                 }
+
+                 let messageLog = "Pesan Masuk:\n\n";
+                 data.forEach(msg => {
+                     const date = new Date(msg.created_at).toLocaleString('id-ID');
+                     messageLog += `Dari: ${msg.sender_email || 'Anonim'} (${date})\nPesan: ${msg.message}\n---\n`;
+                 });
+                 alert(messageLog); 
+                 
+             } catch (error) {
+                 console.error("Error fetching contact messages:", error);
+                 alert(`Gagal mengambil pesan: ${error.message}`);
+             }
+        }
+        
+        async function setupUploadHandlers() {
+             $('#profile-pic-upload, #profile-pic-upload-panel').onchange = async (e) => {
+                 const file = e.target.files[0];
+                 const publicUrl = await handleFileUpload(file, 'profile-pics');
+                 if (publicUrl) {
+                     $('#setting-pic-url').value = publicUrl;
+                     saveAllSettings(); 
+                 }
+                 e.target.value = null; 
+             };
+             $('#bg-upload-panel').onchange = async (e) => {
+                  const file = e.target.files[0];
+                  const publicUrl = await handleFileUpload(file, 'backgrounds');
+                  if (publicUrl) {
+                     $('#setting-bg-image').value = publicUrl;
+                     saveAllSettings();
+                 }
+                  e.target.value = null;
+             };
+             $('#favicon-upload-panel').onchange = async (e) => {
+                 const file = e.target.files[0];
+                 const publicUrl = await handleFileUpload(file, 'favicons');
+                 if (publicUrl) {
+                     $('#setting-favicon').value = publicUrl;
+                     saveAllSettings();
+                 }
+                 e.target.value = null;
+             };
+            $('#links-editor-list').addEventListener('change', async (e) => {
+                if (e.target.classList.contains('setting-link-thumbnail-upload')) {
+                    const file = e.target.files[0];
+                    const publicUrl = await handleFileUpload(file, 'thumbnails', 'thumb-');
+                     if (publicUrl) {
+                         const urlInput = e.target.closest('.space-y-2').querySelector('.setting-link-thumbnail');
+                         if(urlInput) urlInput.value = publicUrl;
+                         saveAllSettings(); 
+                     }
+                    e.target.value = null;
+                 }
+            });
+        }
+        
+        // --- 12. Fungsi Helper ---
+        function toggleMusic() {
+            const isPlaying = !dom.audioPlayer.paused;
+            if (isPlaying) {
+                dom.audioPlayer.pause();
+                dom.musicIconContainer.querySelector('[data-lucide="music"]').classList.remove('hidden');
+                dom.musicIconContainer.querySelector('[data-lucide="pause"]').classList.add('hidden');
+            } else {
+                dom.audioPlayer.play().catch(e => console.error("Gagal memutar audio:", e));
+                dom.musicIconContainer.querySelector('[data-lucide="music"]').classList.add('hidden');
+                dom.musicIconContainer.querySelector('[data-lucide="pause"]').classList.remove('hidden');
+            }
+        }
+        function convertToEmbedUrl(url, type) {
+            if (!url) return null;
+            try {
+                const urlObj = new URL(url);
+                if (type === 'youtube') {
+                    let videoId = urlObj.searchParams.get('v');
+                    if (urlObj.hostname === 'youtu.be') videoId = urlObj.pathname.slice(1);
+                    return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+                }
+                if (type === 'spotify') {
+                    return url.replace('open.spotify.com', 'open.spotify.com/embed');
+                }
+                if (type === 'twitch') {
+                    if (urlObj.hostname === 'www.twitch.tv' || urlObj.hostname === 'twitch.tv') {
+                        const channel = urlObj.pathname.slice(1);
+                        return `https://player.twitch.tv/?channel=${channel}&parent=${window.location.hostname}`;
+                    }
+                }
+                return null;
+            } catch (e) { console.warn("Invalid embed URL:", url); return null; }
+        }
+        function loadCustomFonts() {
+            const fonts = {
+                'Poppins': 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap',
+                'Lobster': 'https://fonts.googleapis.com/css2?family=Lobster&display=swap',
+                'Roboto Slab': 'https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&display=swap',
+                'JetBrains Mono': 'https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap',
+                'Inter': 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'
+            };
+            for (const font in fonts) {
+                const link = document.createElement('link');
+                link.href = fonts[font]; link.rel = 'stylesheet';
+                document.head.appendChild(link);
+            }
+        }
+        function hexToRgba(hex, alpha) {
+            let c;
+            if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
+                c = hex.substring(1).split('');
+                if (c.length === 3) { c = [c[0], c[0], c[1], c[1], c[2], c[2]]; }
+                c = '0x' + c.join('');
+                return `rgba(${[(c >> 16) & 255, (c >> 8) & 255, c & 255].join(',')},${alpha})`;
+            }
+            return `rgba(59, 130, 246, ${alpha})`; // Fallback
+        }
+
+        // --- 13. Inisialisasi Aplikasi ---
+        document.addEventListener("DOMContentLoaded", () => {
+            console.log("DOM Loaded. Initializing app v4.1 (Fix Stuck Loading)...");
+            
+            // Definisi DOM
+            dom = {
+                loadingSpinner: $('#loading-spinner'), mainContent: $('#main-content'), appContainer: $('#app-container'),
+                profilePic: $('#profile-pic'), profileName: $('#profile-name'), profileBio: $('#profile-bio'),
+                verifiedBadge: $('#verified-badge'), profilePicEditBtn: $('#profile-pic-edit-btn'),
+                videoEmbedSection: $('#video-embed-section'), videoIframe: $('#video-iframe'),
+                spotifyEmbedSection: $('#spotify-embed-section'), spotifyIframe: $('#spotify-iframe'),
+                twitchEmbedSection: $('#twitch-embed-section'), twitchIframe: $('#twitch-iframe'),
+                countdownSection: $('#countdown-section'), countdownTitle: $('#countdown-title'), countdownTimer: $('#countdown-timer'),
+                linksSection: $('#links-section'), emailSignupSection: $('#email-signup-section'),
+                emailForm: $('#email-form'), emailInput: $('#email-input'), emailSuccessMsg: $('#email-success-msg'),
+                socialIconsSection: $('#social-icons-section'), customFooter: $('#custom-footer'),
+                musicPopup: $('#music-player-popup'), musicIconContainer: $('#music-icon-container'),
+                songTitle: $('#song-title'), audioPlayer: $('#audio-player'),
+                ownerControls: $('#owner-controls'), settingsPanel: $('#settings-panel'), settingsOverlay: $('#settings-overlay'),
+                toggleSettingsBtn: $('#toggle-settings-btn'), closeSettingsBtn: $('#close-settings-btn'),
+                saveNotification: $('#save-notification'),
+                shareLinkInput: $('#share-link-input'), copyLinkBtn: $('#copy-link-btn'), qrcodeEl: $('#qrcode'),
+                modalOverlay: $('#modal-overlay'), passwordModal: $('#password-modal'), passwordForm: $('#password-form'),
+                passwordInput: $('#password-input'), passwordError: $('#password-error'),
+                sensitiveModal: $('#sensitive-modal'), sensitiveConfirmBtn: $('#sensitive-confirm-btn'),
+                iconPickerModal: $('#icon-picker-modal'), closeIconPickerBtn: $('#close-icon-picker-btn'),
+                iconSearchInput: $('#icon-search-input'), iconList: $('#icon-list'),
+                contactModal: $('#contact-modal'), closeContactBtn: $('#close-contact-btn'), contactForm: $('#contact-form'),
+            };
+
+            loadCustomFonts();
+            loadLucideIcons(); 
+
+            // --- Event Listeners ---
+            dom.audioPlayer.onended = () => {
+                dom.musicIconContainer.querySelector('[data-lucide="music"]').classList.remove('hidden');
+                dom.musicIconContainer.querySelector('[data-lucide="pause"]').classList.add('hidden');
+            }
+            dom.musicIconContainer.onclick = toggleMusic;
+            
+            dom.passwordForm.onsubmit = handlePasswordSubmit;
+            dom.sensitiveConfirmBtn.onclick = handleSensitiveConfirm;
+            
+            dom.toggleSettingsBtn.onclick = () => {
+                dom.settingsPanel.classList.remove('translate-x-full');
+                dom.settingsOverlay.classList.remove('hidden');
+            }
+            dom.closeSettingsBtn.onclick = dom.settingsOverlay.onclick = () => {
+                dom.settingsPanel.classList.add('translate-x-full');
+                dom.settingsOverlay.classList.add('hidden');
+            }
+            
+            $$('.tab-btn').forEach(btn => {
+                btn.onclick = (e) => {
+                    $$('.tab-content').forEach(tab => tab.classList.add('hidden'));
+                    $(`#${e.target.dataset.tab}`).classList.remove('hidden');
+                    $$('.tab-btn').forEach(b => b.classList.remove('text-blue-600', 'border-blue-600', 'border-b-2'));
+                    e.target.classList.add('text-blue-600', 'border-blue-600', 'border-b-2');
+                };
+            });
+            const defaultTab = $('.tab-btn[data-tab="tab-share"]');
+            if(defaultTab) defaultTab.click();
+
+            // Tombol Simpan (1 per tab)
+            $('#save-general-btn').onclick = saveAllSettings;
+            $('#save-style-btn').onclick = saveAllSettings;
+            $('#save-widgets-btn').onclick = saveAllSettings;
+            $('#save-security-btn').onclick = saveAllSettings;
+            $('#save-advanced-btn').onclick = saveAllSettings;
+            
+            // Aksi di Tab Link (Simpan otomatis)
+            $('#add-link-btn').onclick = addLink;
+            $('#add-header-btn').onclick = addHeader;
+            $('#links-editor-list').addEventListener('click', (e) => {
+                if (e.target.closest('.btn-delete-link')) {
+                    deleteLink(e.target.closest('[data-link-id]').dataset.linkId);
+                }
+            });
+            $('#links-editor-list').addEventListener('change', (e) => {
+                if (!e.target.classList.contains('setting-link-thumbnail-upload')) {
+                    saveAllSettings();
+                }
+            });
+            
+            dom.copyLinkBtn.onclick = () => {
+                dom.shareLinkInput.select();
+                try { document.execCommand('copy'); } catch(e) {}
+                dom.copyLinkBtn.textContent = 'Disalin!';
+                setTimeout(() => dom.copyLinkBtn.textContent = 'Salin Link', 2000);
+            };
+            $('#preview-btn').onclick = () => window.open(dom.shareLinkInput.value, '_blank');
+            $('#setting-qrcode-color').onchange = () => renderSettingsPanel(profileData);
+            
+            dom.emailForm.onsubmit = handleEmailSubmit;
+            $('#download-emails-btn').onclick = downloadEmails;
+            $('#reset-views-btn').onclick = resetViews;
+            
+            $$('.theme-select-btn').forEach(btn => {
+                btn.onclick = () => {
+                    $$('.theme-select-btn').forEach(b => b.classList.remove('ring-2', 'ring-blue-500'));
+                    btn.classList.add('ring-2', 'ring-blue-500');
+                };
+            });
+            
+            // Listener Baru
+            dom.closeIconPickerBtn.onclick = closeIconPicker;
+            dom.iconSearchInput.onkeyup = filterIcons;
+            dom.iconList.addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-icon-name]');
+                if (btn) selectIcon(btn.dataset.iconName);
+            });
+            
+            $('#open-contact-btn').onclick = openContactForm;
+            dom.closeContactBtn.onclick = closeContactForm;
+            dom.contactForm.onsubmit = handleContactSubmit;
+            $('#view-messages-btn').onclick = viewContactMessages;
+            
+            $('#links-editor-list').addEventListener('click', (e) => {
+                 const iconButton = e.target.closest('.btn-open-icon-picker');
+                 if (iconButton) {
+                     const inputTarget = iconButton.previousElementSibling; 
+                     openIconPicker(inputTarget);
+                 }
+             });
+            setupUploadHandlers();
+
+            if (_supabase) handleAuth();
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        });
+    </script>
+
+</body>
+</html>
+
