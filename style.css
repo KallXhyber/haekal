@@ -1,0 +1,587 @@
+/* --- Variabel Warna & Tema (Dikelola oleh JS) --- */
+:root {
+    /* 1. Font & Teks */
+    --font-family: 'Poppins', sans-serif;
+    --text-align: 'center';
+    --color-username: #f06292; /* Pink Neon */
+    --color-text: #c0c5e0; /* Teks Abu-abu terang */
+    
+    /* 2. Latar Belakang */
+    --color-bg-start: #1F202E; /* Dark Blue */
+    --color-bg-end: #1A1B26;   /* Darker Blue */
+    --bg-image-url: '';
+    
+    /* 3. Tombol Link */
+    --color-btn-bg: #7e57c2;   /* Ungu */
+    --color-btn-text: #ffffff;
+    --btn-border-radius: 12px; /* [UPDATE V4.1] Sekarang dikelola oleh Select */
+    --color-btn-bg-rgb: 126, 87, 194; /* Untuk shadow */
+    
+    /* 4. Elemen Profil & Sosial */
+    --profile-border-radius: 50%;
+    --color-social-icon: #9a9edb;
+}
+
+/* --- Style Dasar & Tema "Anime Gradient" --- */
+body {
+    font-family: var(--font-family);
+    margin: 0;
+    padding: 20px;
+    background-color: var(--color-bg-end);
+    background-image: var(--bg-image-url), linear-gradient(135deg, var(--color-bg-start), var(--color-bg-end));
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    color: var(--color-text);
+    transition: background 0.5s ease;
+}
+* {
+    box-sizing: border-box;
+}
+
+/* Hilangkan outline & ganti dengan shadow */
+button:focus, input:focus, select:focus, textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(126, 87, 194, 0.5); /* Shadow ungu */
+}
+
+/* Kontainer Kaca "Glassmorphism" */
+.app-container {
+    max-width: 680px;
+    width: 100%;
+    margin: 60px auto 40px auto;
+    text-align: var(--text-align);
+    padding: 30px;
+    background: rgba(42, 44, 64, 0.7); /* Kaca Gelap */
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    animation: fadeIn 0.8s ease-out;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Banner & Fitur Musik --- */
+.announcement-banner {
+    display: none; /* Diatur JS */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(90deg, #f06292, #7e57c2);
+    color: white;
+    text-align: center;
+    font-weight: 500;
+    z-index: 999;
+}
+.announcement-banner.show { display: block; }
+
+.now-playing-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1001;
+    cursor: pointer;
+}
+.now-playing-container > i {
+    font-size: 1.8em;
+    color: var(--color-social-icon);
+    padding: 10px;
+    background: rgba(42, 44, 64, 0.8);
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+.now-playing-container:hover > i {
+    color: #fff;
+    transform: scale(1.1);
+}
+.toast-notification {
+    position: absolute;
+    top: 120%;
+    right: 0;
+    width: 250px;
+    background: #2A2C40;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+}
+.toast-notification.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+.toast-notification .song-title {
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+}
+.toast-notification .song-artist {
+    font-size: 0.9em;
+    color: var(--color-text);
+    margin: 0;
+}
+
+/* --- Style Profil (V4) --- */
+.profile-header {
+    margin-bottom: 30px;
+    transition: all 0.3s ease;
+}
+.profile-pic {
+    width: 120px;
+    height: 120px;
+    border-radius: var(--profile-border-radius);
+    object-fit: cover;
+    margin-bottom: 20px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    transition: border-radius 0.3s ease;
+}
+.username-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: var(--text-align);
+    gap: 10px;
+}
+.username {
+    font-size: 2em;
+    font-weight: 700;
+    margin: 0;
+    background: linear-gradient(90deg, #f06292, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.verified-badge {
+    display: none; /* Diatur JS */
+    font-size: 1.5em;
+    color: #38bdf8; /* Biru Twitter */
+}
+.verified-badge.show { display: inline-block; }
+.bio {
+    font-size: 1em;
+    margin-top: 8px;
+    margin-bottom: 25px;
+    color: var(--color-text);
+    padding: 0 10px;
+}
+
+/* --- Style Link & Embed (V4) --- */
+.links-container {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    align-items: var(--text-align) == 'left' ? 'flex-start' : 'stretch';
+}
+.link-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    text-decoration: none;
+    padding: 16px 20px;
+    border-radius: var(--btn-border-radius);
+    font-size: 1.05em;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease-out;
+}
+
+/* [UPDATE V4.1] Wrapper untuk teks agar tidak miring */
+.link-button-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.2s ease-out;
+}
+
+/* Gaya Tombol V4 */
+.btn-style-fill .link-button {
+    background: var(--color-btn-bg);
+    color: var(--color-btn-text);
+    box-shadow: 0 4px 15px -2px rgba(var(--color-btn-bg-rgb), 0.2);
+}
+.btn-style-fill .link-button:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 6px 20px -2px rgba(var(--color-btn-bg-rgb), 0.4);
+}
+.btn-style-outline .link-button {
+    background: transparent;
+    color: var(--color-btn-bg);
+    box-shadow: inset 0 0 0 2px var(--color-btn-bg);
+}
+.btn-style-outline .link-button:hover {
+    background: var(--color-btn-bg);
+    color: var(--color-btn-text);
+}
+.btn-style-soft .link-button {
+    background: rgba(0, 0, 0, 0.1);
+    color: #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.btn-style-soft .link-button:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+/* Animasi Link Unggulan */
+@keyframes shimmer-neon {
+  0% { box-shadow: 0 0 10px 0px rgba(var(--color-btn-bg-rgb), 0); }
+  50% { box-shadow: 0 0 20px 8px rgba(var(--color-btn-bg-rgb), 0.5); }
+  100% { box-shadow: 0 0 10px 0px rgba(var(--color-btn-bg-rgb), 0); }
+}
+.link-button.featured {
+    animation: shimmer-neon 2.5s infinite ease-in-out;
+}
+
+/* Link Tipe Thumbnail */
+.thumbnail-link {
+    padding: 12px;
+    justify-content: flex-start; /* Ratakan kiri */
+    gap: 15px;
+}
+.thumbnail-link .link-thumbnail {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+/* Link Tipe Embed */
+.embed-container {
+    width: 100%;
+    border-radius: var(--btn-border-radius);
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+.embed-container iframe {
+    width: 100%;
+    border: none;
+    display: block;
+}
+.embed-spotify {
+    height: 380px; /* Default Spotify */
+}
+.embed-youtube {
+    aspect-ratio: 16 / 9; /* Video 16:9 */
+}
+
+/* --- Form Newsletter & Ikon Sosial --- */
+.newsletter-form {
+    margin-top: 30px;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: var(--btn-border-radius);
+    display: none;
+}
+.newsletter-form.show { display: block; }
+.newsletter-form h4 { margin: 0 0 15px 0; color: #fff; }
+.newsletter-form form { display: flex; gap: 10px; }
+.newsletter-form input {
+    flex: 1; padding: 12px; border: none; border-radius: 8px;
+    background: rgba(0, 0, 0, 0.2); color: #fff;
+}
+.newsletter-form button {
+    padding: 12px 20px; border: none; border-radius: 8px;
+    background: var(--color-btn-bg); color: var(--color-btn-text);
+    font-weight: 600; cursor: pointer;
+}
+.social-icons {
+    margin-top: 30px; display: flex; justify-content: center;
+    gap: 30px; flex-wrap: wrap;
+}
+.social-icon-link {
+    font-size: 2.2em; color: var(--color-social-icon);
+    transition: all 0.2s ease;
+}
+.social-icon-link:hover {
+    transform: scale(1.25);
+    color: #fff;
+}
+.share-button-container {
+    margin-top: 30px; display: flex; gap: 15px; justify-content: center;
+}
+.share-button {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--color-social-icon);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 10px 20px; border-radius: 10px; font-size: 1em;
+    font-weight: 600; cursor: pointer; transition: all 0.2s ease;
+}
+.share-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+/* --- Tombol Kustomisasi (V4) --- */
+.customize-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #f06292, #7e57c2);
+    color: white; border: none; border-radius: 50%;
+    width: 60px; height: 60px; font-size: 1.8em;
+    cursor: pointer; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    z-index: 1000; transition: all 0.3s ease;
+}
+.customize-toggle:hover {
+    transform: scale(1.1) rotate(15deg);
+    box-shadow: 0 6px 25px rgba(240, 98, 146, 0.4);
+}
+
+/* --- Panel Modal Kustomisasi (V4) --- */
+.customize-panel {
+    display: none; position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    z-index: 1001; justify-content: center; align-items: center;
+    padding: 20px;
+}
+.customize-modal {
+    background: #1F202E; /* Dark BG */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px; width: 100%; max-width: 700px;
+    max-height: 90vh; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    display: flex; flex-direction: column;
+    animation: modalOpen 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes modalOpen {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+.modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 15px 25px; border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.modal-header h3 {
+    margin: 0;
+    background: linear-gradient(90deg, #f06292, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.btn-close {
+    background: none; border: none; font-size: 2em;
+    color: #888; cursor: pointer; line-height: 1;
+}
+
+/* Tab Kustomisasi */
+.modal-tabs {
+    display: flex;
+    background: #1A1B26;
+    padding: 5px;
+}
+.tab-link {
+    flex: 1; padding: 12px 10px; background: none; border: none;
+    font-size: 1em; font-weight: 600; color: var(--color-text);
+    cursor: pointer; transition: all 0.2s ease;
+    border-radius: 8px; white-space: nowrap;
+}
+.tab-link.active {
+    background: #2A2C40;
+    color: #fff;
+}
+.tab-link i { margin-right: 8px; }
+
+.tab-content {
+    display: none; padding: 25px;
+    overflow-y: auto; flex: 1;
+}
+.tab-content.active { display: block; }
+.tab-content h4 {
+    color: #fff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+.separator {
+    border: 0; height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 30px 0;
+}
+
+/* Form di Modal (V4) */
+.form-group { margin-bottom: 20px; text-align: left; }
+.form-group label {
+    display: block; margin-bottom: 8px;
+    font-weight: 500; color: #c0c5e0;
+}
+.form-group input[type="text"],
+.form-group input[type="url"],
+.form-group input[type="file"],
+.form-group textarea,
+.form-group select {
+    width: 100%; padding: 12px; box-sizing: border-box;
+    border-radius: 8px; border: 1px solid #3b3d5d;
+    background: #2A2C40; color: #fff;
+}
+.form-group-checkbox {
+    display: flex; align-items: center; gap: 10px;
+    background: #2A2C40; padding: 12px; border-radius: 8px;
+}
+.form-group-checkbox input { width: auto; }
+.form-group-checkbox label { margin-bottom: 0; }
+.form-group-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
+}
+.helper-text {
+    font-size: 0.9em; color: #9a9edb;
+    margin: -10px 0 15px 0; text-align: left;
+}
+
+/* Tombol Aksi Modal */
+.modal-footer {
+    display: flex; justify-content: space-between;
+    padding: 20px 25px; border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: #1A1B26;
+}
+.modal-footer button {
+    padding: 12px 20px; border: none; border-radius: 8px;
+    cursor: pointer; font-weight: 600; font-size: 1em;
+    transition: all 0.2s ease;
+}
+.btn-save { background: #4caf50; color: white; }
+.btn-reset { background: #f44336; color: white; }
+.btn-cancel { background: #6c757d; color: white; }
+.btn-add-new {
+    width: 100%; padding: 12px;
+    background: linear-gradient(90deg, #8b5cf6, #6366f1);
+    color: white; border: none; border-radius: 8px;
+    font-weight: 600; cursor: pointer;
+}
+
+/* --- Coloris Picker Input --- */
+.form-group input[data-coloris] {
+    width: 100%;
+    height: 45px;
+    padding: 0 10px;
+    border: 1px solid #3b3d5d;
+    background: #2A2C40;
+    color: #fff;
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 1.1em;
+    cursor: pointer;
+}
+.clr-field {
+    width: 100%;
+}
+.clr-field button {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: 2px solid #fff;
+}
+.coloris_dark .clr-picker {
+    background: #1F202E;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.coloris_dark .clr-field, .coloris_dark .clr-alpha {
+    background: #2A2C40;
+    color: #fff;
+}
+
+/* --- Editor Link & Sosial --- */
+.editor-list-container {
+    display: flex; flex-direction: column; gap: 10px;
+    margin-bottom: 20px; max-height: 250px; overflow-y: auto;
+}
+.editor-item {
+    display: flex; align-items: center; gap: 10px;
+    background: #2A2C40; padding: 12px; border-radius: 8px;
+    border: 1px solid #3b3d5d;
+}
+.editor-item-grip { cursor: grab; color: #9a9edb; font-size: 1.2em; }
+.editor-item-icon { font-size: 1.2em; color: #c0c5e0; width: 20px; text-align: center; }
+.editor-item-info { flex: 1; text-align: left; }
+.editor-item-info strong { display: block; color: #fff; }
+.editor-item-info span { font-size: 0.8em; color: #9a9edb; word-break: break-all; }
+.editor-item-actions button {
+    background: none; border: none; cursor: pointer;
+    font-size: 1.2em; padding: 5px; color: #9a9edb;
+}
+.btn-edit-link:hover { color: #81d4fa; }
+.btn-delete-link:hover { color: #f06292; }
+.sortable-ghost { opacity: 0.4; background: #3b3d5d; }
+
+/* --- Modal Backdrop (Form Link, Ikon, QR) --- */
+.modal-backdrop {
+    display: none; position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1002; justify-content: center; align-items: center;
+}
+.link-form-modal, .icon-picker-modal, .qr-code-modal {
+    background: #1F202E; /* Dark BG */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 25px; border-radius: 15px; width: 90%;
+    animation: modalOpen 0.3s ease-out;
+}
+.link-form-modal { max-width: 500px; }
+.icon-picker-modal { max-width: 600px; max-height: 80vh; display: flex; flex-direction: column; }
+.qr-code-modal { max-width: 400px; text-align: center; background: #fff; color: #111; }
+
+/* QR Code Modal */
+#qrCanvas { width: 100% !important; height: auto !important; max-width: 300px; margin: 10px auto; }
+#qrUrlText { font-size: 0.9em; color: #333; word-break: break-all; background: #f0f0f0; padding: 10px; border-radius: 8px; }
+
+/* Icon Picker */
+#iconSearchInput {
+    background: #2A2C40; border: 1px solid #3b3d5d; color: #fff;
+}
+.icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 10px; overflow-y: auto; max-height: 50vh;
+    padding: 10px; background: #1A1B26; border-radius: 8px; flex: 1;
+}
+.icon-grid i {
+    font-size: 2em; color: #c0c5e0; padding: 12px;
+    border-radius: 8px; cursor: pointer; text-align: center;
+    transition: all 0.2s ease;
+}
+.icon-grid i:hover {
+    background: #2A2C40;
+    color: #fff;
+    transform: scale(1.1);
+}
+
+/* --- [V4.1] Tambahan untuk Gaya Tombol Miring --- */
+.btn-style-fill-slanted .link-button {
+    transform: skewX(-15deg);
+    background: var(--color-btn-bg);
+    color: var(--color-btn-text);
+    box-shadow: 0 4px 15px -2px rgba(var(--color-btn-bg-rgb), 0.2);
+}
+.btn-style-fill-slanted .link-button-inner {
+    transform: skewX(15deg);
+}
+.btn-style-fill-slanted .link-button:hover {
+    transform: translateY(-3px) scale(1.02) skewX(-15deg);
+    box-shadow: 0 6px 20px -2px rgba(var(--color-btn-bg-rgb), 0.4);
+}
+
+.btn-style-outline-slanted .link-button {
+    transform: skewX(-15deg);
+    background: transparent;
+    color: var(--color-btn-bg);
+    box-shadow: inset 0 0 0 2px var(--color-btn-bg);
+}
+.btn-style-outline-slanted .link-button-inner {
+    transform: skewX(15deg);
+}
+.btn-style-outline-slanted .link-button:hover {
+    background: var(--color-btn-bg);
+    color: var(--color-btn-text);
+    transform: skewX(-15deg);
+}
