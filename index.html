@@ -104,7 +104,7 @@
 <body class="antialiased">
 
     <!-- ===== MODAL (Password, Sensitive) (Fitur Baru) ===== -->
-    <div id="modal-overlay" class="hidden fixed inset-0 bg-black/70 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+    <div id="modal-overlay" class="hidden fixed inset-0 bg-black/70 backdrop-blur-md z-[110] flex items-center justify-center p-4">
         
         <!-- Modal Password -->
         <div id="password-modal" class="hidden bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full">
@@ -130,7 +130,7 @@
     <div id="app-container" class="min-h-screen w-full transition-all duration-500">
         
         <!-- Loading Spinner (Pesan Error Lebih Jelas) -->
-        <div id="loading-spinner" class="fixed inset-0 flex items-center justify-center bg-white/50 backdrop-blur-sm z-[90] p-4">
+        <div id="loading-spinner" class="fixed inset-0 flex items-center justify-center bg-white/50 backdrop-blur-sm z-[100] p-4">
             <div class="text-center">
                 <svg class="animate-spin h-12 w-12 text-blue-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -216,7 +216,7 @@
     </div>
 
     <!-- ===== MUSIC PLAYER POPUP ===== -->
-    <div id="music-player-popup" class="hidden fixed bottom-6 left-6 z-40 flex items-center group cursor-pointer">
+    <div id="music-player-popup" class="hidden fixed bottom-6 left-6 z-50 flex items-center group cursor-pointer">
         <div id="music-icon-container" class="w-14 h-14 bg-white rounded-full shadow-2xl flex items-center justify-center text-blue-600 hover:scale-110 transition-transform">
             <i data-lucide="music" class="w-7 h-7"></i>
             <i data-lucide="pause" class="w-7 h-7 hidden"></i>
@@ -228,14 +228,19 @@
     </div>
 
     <!-- ===== OWNER-ONLY BUTTONS ===== -->
-    <div id="owner-controls" class="hidden fixed bottom-6 right-6 z-40 space-x-3">
+    <div id="owner-controls" class="hidden fixed bottom-6 right-6 z-[101] space-x-3">
         <button id="toggle-settings-btn" class="w-14 h-14 bg-blue-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:bg-blue-700 transition-transform hover:scale-110" title="Buka Pengaturan">
             <i data-lucide="settings" class="w-7 h-7"></i>
         </button>
     </div>
 
     <!-- ===== SETTINGS PANEL (Didesain ulang) ===== -->
-    <aside id="settings-panel" class="hidden fixed top-0 right-0 w-full max-w-md h-full bg-white/90 backdrop-blur-lg shadow-2xl z-50 p-6 overflow-y-auto transform translate-x-full transition-transform duration-300 text-gray-800">
+    <!-- 
+      PERBAIKAN (v2.3) #1: 
+      Menghapus class "hidden" dari <aside>
+      Panel sekarang disembunyikan HANYA menggunakan "translate-x-full"
+    -->
+    <aside id="settings-panel" class="fixed top-0 right-0 w-full max-w-md h-full bg-white/90 backdrop-blur-lg shadow-2xl z-[110] p-6 overflow-y-auto transform translate-x-full transition-transform duration-300 text-gray-800">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold">Pengaturan</h2>
             <button id="close-settings-btn" class="text-gray-600 hover:text-gray-900"><i data-lucide="x" class="w-7 h-7"></i></button>
@@ -449,9 +454,15 @@
     </aside>
 
     <!-- Overlay untuk panel setting -->
-    <div id="settings-overlay" class="hidden fixed inset-0 bg-black/40 z-40"></div>
+    <!-- 
+      PERBAIKAN (v2.3) #2: 
+      Mengubah z-50 menjadi z-[105]
+      Ini agar overlay (latar belakang redup) muncul DI ATAS halaman
+      tapi DI BAWAH panel setting (z-[110])
+    -->
+    <div id="settings-overlay" class="hidden fixed inset-0 bg-black/40 z-[105]"></div>
 
-    <!-- ===== SCRIPT UTAMA (v2.1 - Bug Fix) ===== -->
+    <!-- ===== SCRIPT UTAMA (v2.3 - Panel Fix) ===== -->
     <script type="module">
         // --- 1. Impor Firebase ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -460,7 +471,6 @@
             getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, 
             collection, addDoc, serverTimestamp, arrayUnion, arrayRemove,
             getDocs, deleteDoc, query 
-            // PERBAIKAN: Menghapus 'getCount' yang menyebabkan error
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         // --- 2. Inisialisasi Firebase ---
@@ -626,7 +636,6 @@
                 // INI BAGIAN PENTING: Tampilkan error ke user
                 $('#loading-text').innerHTML = `Gagal memuat profil. <br><b class="text-red-600">Error: ${error.message}</b> <br> Cek Firestore Rules Anda!`;
                 dom.loadingSpinner.classList.remove('hidden');
-                dom.ownerControls.classList.add('hidden'); // Sembunyikan tombol setting jika error
             });
         }
         
@@ -1081,7 +1090,6 @@
             // Tampilkan page views
             const viewsCollectionRef = collection(db, profileDocRef.path, 'pageviews');
             
-            // PERBAIKAN: Mengganti getCount() dengan getDocs() lalu .size
             try {
                 const snapshot = await getDocs(query(viewsCollectionRef)); 
                 const count = snapshot.size; 
@@ -1166,7 +1174,7 @@
 
         // --- 10. Inisialisasi Aplikasi ---
         document.addEventListener("DOMContentLoaded", () => {
-            console.log("DOM Loaded. Initializing app v2.1 (bugfix)...");
+            console.log("DOM Loaded. Initializing app v2.3 (Panel Fix)...");
             
             // Definisi DOM
             dom = {
@@ -1228,9 +1236,15 @@
             dom.passwordForm.onsubmit = handlePasswordSubmit;
             dom.sensitiveConfirmBtn.onclick = handleSensitiveConfirm;
             
-            // Toggle panel
-            dom.toggleSettingsBtn.onclick = () => dom.settingsPanel.classList.remove('translate-x-full');
-            dom.closeSettingsBtn.onclick = dom.settingsOverlay.onclick = () => dom.settingsPanel.classList.add('translate-x-full');
+            // Toggle panel (KODE SUDAH BENAR, TIDAK PERLU DIUBAH)
+            dom.toggleSettingsBtn.onclick = () => {
+                dom.settingsPanel.classList.remove('translate-x-full');
+                dom.settingsOverlay.classList.remove('hidden');
+            }
+            dom.closeSettingsBtn.onclick = dom.settingsOverlay.onclick = () => {
+                dom.settingsPanel.classList.add('translate-x-full');
+                dom.settingsOverlay.classList.add('hidden');
+            }
             
             // Tab
             $$('.tab-btn').forEach(btn => {
