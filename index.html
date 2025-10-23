@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BioLink Profile</title>
     
-    <!-- 1. Tailwind CSS -->
+    <!-- SEO & Favicon (Fitur Baru) -->
+    <title id="seo-title">Profil BioLink Anda</title>
+    <meta id="seo-description" name="description" content="Semua link saya di satu tempat. Didukung oleh BioLink.">
+    <link id="favicon" rel="icon" href="https://placehold.co/32x32/007bff/ffffff?text=B">
+    
+    <!-- Library -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- 2. Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    
-    <!-- 3. QR Code Generator Library -->
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     
-    <!-- 4. Konfigurasi Tailwind & Font Kustom -->
+    <!-- Konfigurasi Tailwind -->
     <script>
         tailwind.config = {
             theme: {
@@ -26,6 +26,7 @@
                         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                         'shake': 'shake 1s cubic-bezier(.36,.07,.19,.97) both infinite',
                         'bounce-fast': 'bounce 0.8s infinite',
+                        'highlight-glow': 'highlight-glow 2s ease-in-out infinite alternate',
                     },
                     keyframes: {
                         shake: {
@@ -33,6 +34,10 @@
                             '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
                             '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
                             '40%, 60%': { transform: 'translate3d(4px, 0, 0)' },
+                        },
+                        'highlight-glow': {
+                            'from': { 'box-shadow': '0 0 5px 0px var(--highlight-color)' },
+                            'to': { 'box-shadow': '0 0 20px 8px var(--highlight-color)' },
                         }
                     }
                 }
@@ -40,77 +45,98 @@
         }
     </script>
 
-    <!-- 5. Custom Styles -->
+    <!-- Custom Styles -->
     <style>
         :root {
             --font-family: 'Inter', sans-serif;
             --primary-color: #ffffff;
             --text-color: #1f2937;
             --bg-color: #f3f4f6;
+            --highlight-color: rgba(59, 130, 246, 0.5); /* Warna glow biru */
+            cursor: var(--custom-cursor, auto);
         }
-        
-        /* Tema Gelap */
         .theme-dark {
-            --primary-color: #1f2937;
-            --text-color: #f3f4f6;
-            --bg-color: #111827;
+            --primary-color: #1f2937; --text-color: #f3f4f6; --bg-color: #111827;
         }
-
-        /* Tema Gradien */
         .theme-gradient {
-            --primary-color: #ffffff;
-            --text-color: #1f2937;
-            --bg-color: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-color: #ffffff; --text-color: #1f2937; --bg-color: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-
         body {
             font-family: var(--font-family), sans-serif;
             background: var(--bg-color);
             color: var(--text-color);
         }
-        
         #app-container {
             background: var(--bg-color);
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
+            background-size: cover; background-position: center; background-attachment: fixed;
             transition: background 0.5s ease;
         }
-        
         .link-button {
-            background-color: var(--primary-color);
-            color: var(--text-color);
+            background-color: var(--primary-color); color: var(--text-color);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
         .link-button:hover {
             transform: scale(1.03);
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
+        /* Bentuk Tombol (Fitur Baru) */
+        .link-shape-rounded { border-radius: 0.75rem; /* 12px */ }
+        .link-shape-pill { border-radius: 9999px; /* full */ }
+        .link-shape-square { border-radius: 0px; }
+
+        /* Link Header (Fitur Baru) */
+        .link-header {
+            color: var(--text-color);
+            font-weight: 600; text-align: center; margin-top: 1.25rem; margin-bottom: 0.5rem;
+        }
+        
+        /* Link Thumbnail (Fitur Baru) */
+        .link-thumbnail {
+            width: 48px; height: 48px; object-cover; border-radius: 0.5rem;
+            margin-right: 1rem;
+        }
 
         #settings-panel::-webkit-scrollbar { display: none; }
         #settings-panel { -ms-overflow-style: none; scrollbar-width: none; }
-        [data-lucide] { width: 20px; height: 20px; }
+        [data-lucide] { width: 20px; height: 20px; flex-shrink: 0; }
     </style>
 </head>
 <body class="antialiased">
 
+    <!-- ===== MODAL (Password, Sensitive) (Fitur Baru) ===== -->
+    <div id="modal-overlay" class="hidden fixed inset-0 bg-black/70 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+        
+        <!-- Modal Password -->
+        <div id="password-modal" class="hidden bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full">
+            <h3 class="text-2xl font-bold text-gray-800 text-center mb-4">Profil Ini Dikunci</h3>
+            <p class="text-gray-600 text-center mb-6">Silakan masukkan password untuk melanjutkan.</p>
+            <form id="password-form" class="space-y-4">
+                <input id="password-input" type="password" class="w-full p-3 border rounded-lg text-gray-900" placeholder="Password...">
+                <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-lg font-semibold hover:bg-blue-700 transition">Buka</button>
+            </form>
+            <p id="password-error" class="text-red-500 text-center text-sm mt-3 hidden">Password salah.</p>
+        </div>
+        
+        <!-- Modal Sensitive -->
+        <div id="sensitive-modal" class="hidden bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full text-center">
+            <i data-lucide="alert-triangle" class="w-16 h-16 text-yellow-500 mx-auto mb-4"></i>
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">Peringatan Konten</h3>
+            <p class="text-gray-600 mb-8">Profil ini mungkin berisi konten sensitif atau dewasa (18+). Apakah Anda yakin ingin melanjutkan?</p>
+            <button id="sensitive-confirm-btn" class="w-full bg-blue-600 text-white p-3 rounded-lg font-semibold hover:bg-blue-700 transition">Ya, Lanjutkan (Saya 18+)</button>
+        </div>
+    </div>
+
     <!-- ===== MAIN APP CONTAINER ===== -->
     <div id="app-container" class="min-h-screen w-full transition-all duration-500">
         
-        <!-- Loading Spinner -->
-        <div id="loading-spinner" class="fixed inset-0 flex items-center justify-center bg-white/50 backdrop-blur-sm z-[100]">
-            <svg class="animate-spin h-12 w-12 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-        </div>
-        
-        <!-- Pesan Error (misal: profil tidak ditemukan) -->
-        <div id="error-message" class="hidden fixed inset-0 flex items-center justify-center bg-white/50 backdrop-blur-sm z-[99]">
-            <div class="bg-white p-8 rounded-lg shadow-xl text-center">
-                <h2 class="text-2xl font-bold text-red-600 mb-4">Profil Tidak Ditemukan</h2>
-                <p class="text-gray-700">Profil yang Anda cari tidak ada atau belum dibuat.</p>
-                <button id="go-home-btn" class="mt-6 bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition">Kembali ke Profil Saya</button>
+        <!-- Loading Spinner (Pesan Error Lebih Jelas) -->
+        <div id="loading-spinner" class="fixed inset-0 flex items-center justify-center bg-white/50 backdrop-blur-sm z-[90] p-4">
+            <div class="text-center">
+                <svg class="animate-spin h-12 w-12 text-blue-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p id="loading-text" class="text-lg font-semibold text-gray-700 mt-4">Memuat profil...</p>
             </div>
         </div>
 
@@ -123,26 +149,49 @@
                      alt="Foto Profil" 
                      class="w-32 h-32 rounded-full object-cover border-4 shadow-lg"
                      style="border-color: var(--primary-color);">
-                <h1 id="profile-name" class="text-3xl font-bold mt-4" style="color: var(--text-color);">Nama Anda</h1>
-                <p id="profile-bio" class="text-lg mt-2 max-w-md" style="color: var(--text-color);">Bio singkat Anda di sini. Ceritakan sedikit tentang diri Anda.</p>
+                
+                <div class="flex items-center gap-2 mt-4">
+                    <h1 id="profile-name" class="text-3xl font-bold" style="color: var(--text-color);">Nama Anda</h1>
+                    <!-- Verified Badge (Fitur Baru) -->
+                    <i id="verified-badge" data-lucide="shield-check" class="w-7 h-7 text-blue-500 fill-current hidden"></i>
+                </div>
+                
+                <p id="profile-bio" class="text-lg mt-2 max-w-md" style="color: var(--text-color);">Bio singkat Anda di sini.</p>
+                
+                <!-- Page View Counter (Fitur Baru) -->
+                <p id="page-views" class="text-sm text-gray-500 mt-2 hidden items-center gap-1" style="color: var(--text-color); opacity: 0.7;">
+                    <i data-lucide="eye" class="w-4 h-4"></i> <span>Dilihat 0 kali</span>
+                </p>
             </header>
             
-            <!-- 2. YouTube Embed (Fitur Tambahan) -->
-            <section id="video-embed-section" class="w-full max-w-md mt-8 rounded-xl overflow-hidden shadow-lg hidden">
-                <iframe id="video-iframe" class="w-full aspect-video" 
-                        src="" 
-                        title="YouTube video player" frameborder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                        allowfullscreen>
-                </iframe>
+            <!-- 2. Countdown Timer (Fitur Baru) -->
+            <section id="countdown-section" class="w-full max-w-md mt-8 p-4 rounded-2xl shadow-lg hidden text-center" style="background-color: var(--primary-color);">
+                <h3 id="countdown-title" class="text-lg font-semibold mb-2" style="color: var(--text-color);">Hitung Mundur</h3>
+                <div id="countdown-timer" class="text-3xl font-bold" style="color: var(--text-color);">00:00:00:00</div>
+            </section>
+
+            <!-- 3. Embeds (YouTube, Spotify, Twitch) (Fitur Baru) -->
+            <section id="embeds-section" class="w-full max-w-md mt-8 space-y-5">
+                <!-- YouTube -->
+                <div id="video-embed-section" class="rounded-xl overflow-hidden shadow-lg hidden">
+                    <iframe id="video-iframe" class="w-full aspect-video" src="" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+                <!-- Spotify -->
+                <div id="spotify-embed-section" class="rounded-xl overflow-hidden shadow-lg hidden">
+                    <iframe id="spotify-iframe" class="w-full" src="" height="380" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+                </div>
+                <!-- Twitch -->
+                <div id="twitch-embed-section" class="rounded-xl overflow-hidden shadow-lg hidden">
+                    <iframe id="twitch-iframe" class="w-full aspect-video" src="" frameborder="0" allowfullscreen="true" scrolling="no"></iframe>
+                </div>
             </section>
             
-            <!-- 3. Links Section -->
-            <section id="links-section" class="w-full max-w-md mt-8 space-y-5">
-                <!-- Link dinamis akan ditambahkan di sini oleh JS -->
+            <!-- 4. Links Section (Ditingkatkan) -->
+            <section id="links-section" class="w-full max-w-md mt-8 space-y-4">
+                <!-- Headers, Thumbnails, dan Links dinamis di sini -->
             </section>
             
-            <!-- 4. Email Signup (Fitur Tambahan) -->
+            <!-- 5. Email Signup -->
             <section id="email-signup-section" class="w-full max-w-md mt-8 p-6 rounded-2xl shadow-lg hidden" style="background-color: var(--primary-color);">
                 <h3 class="text-lg font-semibold text-center mb-3" style="color: var(--text-color);">Berlangganan Newsletter Saya</h3>
                 <form id="email-form" class="flex flex-col sm:flex-row gap-3">
@@ -150,234 +199,273 @@
                     <button type="submit" class="bg-blue-600 text-white font-semibold px-6 py-3 rounded-full hover:bg-blue-700 transition">Kirim</button>
                 </form>
                 <p id="email-success-msg" class="text-green-600 text-center mt-3 hidden">Terima kasih telah berlangganan!</p>
-                <p id="email-error-msg" class="text-red-600 text-center mt-3 hidden">Gagal menyimpan email.</p>
             </section>
             
-            <!-- 5. Social Icons (Fitur Tambahan) -->
-            <footer id="social-icons-section" class="flex justify-center items-center space-x-6 mt-12">
-                <!-- Ikon sosial dinamis akan ditambahkan di sini -->
+            <!-- 6. Social Icons & Footer -->
+            <footer class="text-center mt-12">
+                <div id="social-icons-section" class="flex justify-center items-center space-x-6">
+                    <!-- Ikon sosial dinamis -->
+                </div>
+                <!-- Custom Footer (Fitur Baru) -->
+                <p id="custom-footer" class="text-sm mt-8" style="color: var(--text-color); opacity: 0.7;">
+                    Ditenagai oleh BioLink
+                </p>
             </footer>
             
         </main>
     </div>
 
     <!-- ===== MUSIC PLAYER POPUP ===== -->
-    <div id="music-player-popup" class="fixed bottom-6 left-6 z-50 flex items-center group cursor-pointer">
+    <div id="music-player-popup" class="hidden fixed bottom-6 left-6 z-40 flex items-center group cursor-pointer">
         <div id="music-icon-container" class="w-14 h-14 bg-white rounded-full shadow-2xl flex items-center justify-center text-blue-600 hover:scale-110 transition-transform">
             <i data-lucide="music" class="w-7 h-7"></i>
             <i data-lucide="pause" class="w-7 h-7 hidden"></i>
         </div>
         <div id="song-title-bubble" class="ml-3 bg-white shadow-2xl px-5 py-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-            <span id="song-title" class="font-semibold text-gray-800">Nama Lagu - Artis</span>
+            <span id="song-title" class="font-semibold text-gray-800">Nama Lagu</span>
         </div>
         <audio id="audio-player" src=""></audio>
     </div>
 
     <!-- ===== OWNER-ONLY BUTTONS ===== -->
-    <div id="owner-controls" class="hidden fixed bottom-6 right-6 z-50 space-x-3">
-        <!-- Tombol Buka/Tutup Settings -->
+    <div id="owner-controls" class="hidden fixed bottom-6 right-6 z-40 space-x-3">
         <button id="toggle-settings-btn" class="w-14 h-14 bg-blue-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:bg-blue-700 transition-transform hover:scale-110" title="Buka Pengaturan">
             <i data-lucide="settings" class="w-7 h-7"></i>
         </button>
     </div>
 
-    <!-- ===== SETTINGS PANEL ===== -->
-    <aside id="settings-panel" class="hidden fixed top-0 right-0 w-full max-w-md h-full bg-white/90 backdrop-blur-lg shadow-2xl z-[60] p-6 overflow-y-auto transform translate-x-full transition-transform duration-300 text-gray-800">
+    <!-- ===== SETTINGS PANEL (Didesain ulang) ===== -->
+    <aside id="settings-panel" class="hidden fixed top-0 right-0 w-full max-w-md h-full bg-white/90 backdrop-blur-lg shadow-2xl z-50 p-6 overflow-y-auto transform translate-x-full transition-transform duration-300 text-gray-800">
         <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold">Pengaturan BioLink</h2>
-            <button id="close-settings-btn" class="text-gray-600 hover:text-gray-900">
-                <i data-lucide="x" class="w-7 h-7"></i>
-            </button>
+            <h2 class="text-2xl font-bold">Pengaturan</h2>
+            <button id="close-settings-btn" class="text-gray-600 hover:text-gray-900"><i data-lucide="x" class="w-7 h-7"></i></button>
         </div>
         
-        <!-- Notifikasi Simpan -->
-        <div id="save-notification" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-4 hidden" role="alert">
-            <strong class="font-bold">Sukses!</strong>
-            <span class="block sm:inline">Perubahan telah disimpan.</span>
+        <div id="save-notification" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-4 hidden">
+            <strong class="font-bold">Sukses!</strong> Perubahan disimpan.
         </div>
         
-        <!-- Tab Navigasi -->
+        <!-- Tab Navigasi Baru -->
         <div class="border-b border-gray-200 mb-6">
-            <nav class="flex space-x-4" aria-label="Tabs">
+            <nav class="flex space-x-2 overflow-x-auto pb-2 -mb-px">
                 <button class="tab-btn" data-tab="tab-share">Bagikan</button>
                 <button class="tab-btn" data-tab="tab-general">Umum</button>
                 <button class="tab-btn" data-tab="tab-links">Link</button>
                 <button class="tab-btn" data-tab="tab-style">Tampilan</button>
-                <button class="tab-btn" data-tab="tab-extras">Tambahan</button>
+                <button class="tab-btn" data-tab="tab-widgets">Widgets</button>
+                <button class="tab-btn" data-tab="tab-security">Keamanan</button>
+                <button class="tab-btn" data-tab="tab-advanced">Lanjutan</button>
             </nav>
         </div>
 
         <!-- Konten Tab -->
         
-        <!-- Tab 1: Share / Bagikan -->
+        <!-- Tab 1: Share -->
         <div id="tab-share" class="tab-content hidden">
             <h3 class="text-xl font-semibold mb-4">Bagikan Profil Anda</h3>
-            <p class="text-sm mb-2">Gunakan link atau QR code ini untuk membagikan profil Anda ke semua orang.</p>
             <input id="share-link-input" type="text" readonly class="w-full p-2 border rounded-lg bg-gray-100 mb-4">
             <button id="copy-link-btn" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition mb-6">Salin Link</button>
-            
             <div id="qrcode-container" class="flex justify-center p-4 bg-white border rounded-lg shadow-inner">
                 <div id="qrcode" class="w-48 h-48"></div>
             </div>
-            <p class="text-xs text-gray-500 text-center mt-2">Pindai kode ini untuk membuka profil.</p>
         </div>
 
-        <!-- Tab 2: General / Umum -->
+        <!-- Tab 2: General (Diupdate) -->
         <div id="tab-general" class="tab-content hidden space-y-4">
-            <h3 class="text-xl font-semibold mb-4">Pengaturan Umum</h3>
+            <h3 class="text-xl font-semibold mb-2">Info Umum</h3>
             <div>
                 <label for="setting-name" class="block text-sm font-medium mb-1">Nama Tampilan</label>
                 <input type="text" id="setting-name" class="w-full p-2 border rounded-lg" placeholder="Nama Anda">
             </div>
             <div>
                 <label for="setting-bio" class="block text-sm font-medium mb-1">Bio</label>
-                <textarea id="setting-bio" rows="3" class="w-full p-2 border rounded-lg" placeholder="Bio singkat Anda..."></textarea>
+                <textarea id="setting-bio" rows="3" class="w-full p-2 border rounded-lg" placeholder="Bio singkat..."></textarea>
             </div>
             <div>
                 <label for="setting-pic-url" class="block text-sm font-medium mb-1">URL Foto Profil</label>
                 <input type="url" id="setting-pic-url" class="w-full p-2 border rounded-lg" placeholder="https://.../gambar.png">
             </div>
-            <button id="save-general-btn" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition">Simpan Pengaturan Umum</button>
+            <div class="flex items-center">
+                <input id="setting-verified" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                <label for="setting-verified" class="ml-2 block text-sm">Tampilkan "Verified" Badge (Fitur Baru)</label>
+            </div>
+            
+            <h3 class="text-xl font-semibold mb-2 mt-6">SEO & Favicon (Fitur Baru)</h3>
+            <div>
+                <label for="setting-seo-title" class="block text-sm font-medium mb-1">Judul Halaman (SEO)</label>
+                <input type="text" id="setting-seo-title" class="w-full p-2 border rounded-lg" placeholder="Judul di tab browser">
+            </div>
+            <div>
+                <label for="setting-seo-desc" class="block text-sm font-medium mb-1">Deskripsi Halaman (SEO)</label>
+                <textarea id="setting-seo-desc" rows="2" class="w-full p-2 border rounded-lg" placeholder="Deskripsi untuk Google..."></textarea>
+            </div>
+            <div>
+                <label for="setting-favicon" class="block text-sm font-medium mb-1">URL Favicon (.ico, .png)</label>
+                <input type="url" id="setting-favicon" class="w-full p-2 border rounded-lg" placeholder="https://.../favicon.png">
+            </div>
+            <button id="save-general-btn" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition">Simpan Info Umum</button>
         </div>
         
-        <!-- Tab 3: Links / Link -->
+        <!-- Tab 3: Links (Diupdate) -->
         <div id="tab-links" class="tab-content hidden">
-            <h3 class="text-xl font-semibold mb-4">Kelola Link</h3>
+            <h3 class="text-xl font-semibold mb-4">Kelola Link & Header</h3>
             <div id="links-editor-list" class="space-y-3 mb-4">
-                <!-- Editor link dinamis akan ditambahkan di sini -->
+                <!-- Editor link dinamis di sini -->
             </div>
-            <button id="add-link-btn" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center gap-2">
+            <button id="add-link-btn" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center gap-2 mb-3">
                 <i data-lucide="plus"></i> Tambah Link Baru
+            </button>
+            <button id="add-header-btn" class="w-full bg-gray-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-700 transition flex items-center justify-center gap-2">
+                <i data-lucide="type"></i> Tambah Header (Fitur Baru)
             </button>
         </div>
         
-        <!-- Tab 4: Style / Tampilan -->
+        <!-- Tab 4: Style (Diupdate) -->
         <div id="tab-style" class="tab-content hidden space-y-4">
-            <h3 class="text-xl font-semibold mb-4">Gaya & Tampilan</h3>
-            
-            <!-- Pilihan Tema -->
+            <h3 class="text-xl font-semibold mb-2">Gaya & Tampilan</h3>
             <div>
                 <label class="block text-sm font-medium mb-2">Tema</label>
                 <div class="grid grid-cols-3 gap-3">
-                    <button class="theme-select-btn" data-theme="theme-light">
-                        <div class="w-full h-16 bg-gray-100 border-2 rounded-lg flex items-center justify-center">Terang</div>
-                    </button>
-                    <button class="theme-select-btn" data-theme="theme-dark">
-                        <div class="w-full h-16 bg-gray-900 text-white border-2 rounded-lg flex items-center justify-center">Gelap</div>
-                    </button>
-                    <button class="theme-select-btn" data-theme="theme-gradient">
-                        <div class="w-full h-16 bg-gradient-to-r from-blue-500 to-purple-600 text-white border-2 rounded-lg flex items-center justify-center">Gradien</div>
-                    </button>
+                    <button class="theme-select-btn" data-theme="theme-light"><div class="w-full h-16 bg-gray-100 border-2 rounded-lg flex items-center justify-center">Terang</div></button>
+                    <button class="theme-select-btn" data-theme="theme-dark"><div class="w-full h-16 bg-gray-900 text-white border-2 rounded-lg flex items-center justify-center">Gelap</div></button>
+                    <button class="theme-select-btn" data-theme="theme-gradient"><div class="w-full h-16 bg-gradient-to-r from-blue-500 to-purple-600 text-white border-2 rounded-lg flex items-center justify-center">Gradien</div></button>
                 </div>
             </div>
-            
-            <!-- Pilihan Background -->
             <div>
-                <label for="setting-bg-image" class="block text-sm font-medium mb-1">URL Gambar Background (Opsional)</label>
-                <input type="url" id="setting-bg-image" class="w-full p-2 border rounded-lg" placeholder="https://.../background.png">
-                <p class="text-xs text-gray-500 mt-1">Akan menimpa warna tema. Kosongkan untuk menggunakan warna tema.</p>
+                <label for="setting-bg-image" class="block text-sm font-medium mb-1">URL Gambar Background</label>
+                <input type="url" id="setting-bg-image" class="w-full p-2 border rounded-lg" placeholder="Kosongkan untuk pakai tema">
             </div>
-            
-            <!-- Pilihan Font -->
             <div>
                 <label for="setting-font" class="block text-sm font-medium mb-1">Font</label>
                 <select id="setting-font" class="w-full p-2 border rounded-lg bg-white">
-                    <option value="'Inter', sans-serif">Inter (Default)</option>
+                    <option value="'Inter', sans-serif">Inter</option>
                     <option value="'Poppins', sans-serif">Poppins</option>
                     <option value="'Lobster', cursive">Lobster</option>
                     <option value="'Roboto Slab', serif">Roboto Slab</option>
                     <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
                 </select>
             </div>
-            
+            <!-- Fitur Baru -->
+            <div>
+                <label for="setting-button-shape" class="block text-sm font-medium mb-1">Bentuk Tombol Link</label>
+                <select id="setting-button-shape" class="w-full p-2 border rounded-lg bg-white">
+                    <option value="link-shape-pill">Kapsul (Pill)</option>
+                    <option value="link-shape-rounded">Setengah Bulat (Rounded)</option>
+                    <option value="link-shape-square">Kotak (Square)</option>
+                </select>
+            </div>
+            <div>
+                <label for="setting-cursor" class="block text-sm font-medium mb-1">Kursor Kustom (URL .cur, .png)</label>
+                <input type="url" id="setting-cursor" class="w-full p-2 border rounded-lg" placeholder="Kosongkan untuk default">
+                <p class="text-xs text-gray-500 mt-1">Contoh: 'url(https://.../kursor.png), auto'</p>
+            </div>
             <button id="save-style-btn" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition">Simpan Tampilan</button>
         </div>
         
-        <!-- Tab 5: Extras / Tambahan -->
-        <div id="tab-extras" class="tab-content hidden space-y-4">
-            <h3 class="text-xl font-semibold mb-4">Fitur Tambahan</h3>
-            
-            <!-- Pengaturan Musik -->
+        <!-- Tab 5: Widgets (Fitur Baru) -->
+        <div id="tab-widgets" class="tab-content hidden space-y-4">
+            <h3 class="text-xl font-semibold mb-2">Widgets</h3>
             <fieldset class="border p-4 rounded-lg">
                 <legend class="text-sm font-medium px-1">Pemutar Musik</legend>
-                <div>
-                    <label for="setting-song-url" class="block text-sm font-medium mb-1">URL Lagu (.mp3)</label>
-                    <input type="url" id="setting-song-url" class="w-full p-2 border rounded-lg" placeholder="https://.../lagu.mp3">
-                </div>
-                <div class="mt-2">
-                    <label for="setting-song-title" class="block text-sm font-medium mb-1">Judul Lagu</label>
-                    <input type="text" id="setting-song-title" class="w-full p-2 border rounded-lg" placeholder="Nama Lagu - Artis">
-                </div>
+                <input type="url" id="setting-song-url" class="w-full p-2 border rounded-lg" placeholder="URL Lagu (.mp3)">
+                <input type="text" id="setting-song-title" class="w-full p-2 border rounded-lg mt-2" placeholder="Judul Lagu">
             </fieldset>
-            
-            <!-- Pengaturan Video Embed -->
             <fieldset class="border p-4 rounded-lg">
                 <legend class="text-sm font-medium px-1">Embed Video YouTube</legend>
-                <div>
-                    <label for="setting-video-url" class="block text-sm font-medium mb-1">URL Video YouTube</label>
-                    <input type="url" id="setting-video-url" class="w-full p-2 border rounded-lg" placeholder="https://www.youtube.com/watch?v=...">
-                    <p class="text-xs text-gray-500 mt-1">Kosongkan untuk menyembunyikan video.</p>
+                <input type="url" id="setting-video-url" class="w-full p-2 border rounded-lg" placeholder="URL Video YouTube">
+            </fieldset>
+            <fieldset class="border p-4 rounded-lg">
+                <legend class="text-sm font-medium px-1">Embed Spotify</legend>
+                <input type="url" id="setting-spotify-url" class="w-full p-2 border rounded-lg" placeholder="URL Lagu/Playlist Spotify">
+            </fieldset>
+            <fieldset class="border p-4 rounded-lg">
+                <legend class="text-sm font-medium px-1">Embed Twitch</legend>
+                <input type="url" id="setting-twitch-url" class="w-full p-2 border rounded-lg" placeholder="URL Channel Twitch (cth: https://twitch.tv/...)">
+            </fieldset>
+            <fieldset class="border p-4 rounded-lg">
+                <legend class="text-sm font-medium px-1">Countdown Timer</legend>
+                <input type="text" id="setting-countdown-title" class="w-full p-2 border rounded-lg" placeholder="Nama Acara (cth: Rilis Album)">
+                <input type="datetime-local" id="setting-countdown-date" class="w-full p-2 border rounded-lg mt-2">
+                <p class="text-xs text-gray-500 mt-1">Kosongkan tanggal untuk sembunyikan.</p>
+            </fieldset>
+            <button id="save-widgets-btn" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition">Simpan Widgets</button>
+        </div>
+        
+        <!-- Tab 6: Security (Fitur Baru) -->
+        <div id="tab-security" class="tab-content hidden space-y-4">
+            <h3 class="text-xl font-semibold mb-2">Keamanan & Akses</h3>
+            <fieldset class="border p-4 rounded-lg">
+                <legend class="text-sm font-medium px-1">Password Profil</legend>
+                <input type="text" id="setting-password" class="w-full p-2 border rounded-lg" placeholder="Password...">
+                <p class="text-xs text-gray-500 mt-1">Kosongkan untuk menonaktifkan password.</p>
+            </fieldset>
+            <fieldset class="border p-4 rounded-lg">
+                <legend class="text-sm font-medium px-1">Peringatan Konten Sensitif</legend>
+                <div class="flex items-center">
+                    <input id="setting-sensitive" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                    <label for="setting-sensitive" class="ml-2 block text-sm">Aktifkan peringatan 18+</label>
                 </div>
             </fieldset>
+            <button id="save-security-btn" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition">Simpan Keamanan</button>
+        </div>
 
-            <!-- Pengaturan Email Signup -->
+        <!-- Tab 7: Advanced (Fitur Baru) -->
+        <div id="tab-advanced" class="tab-content hidden space-y-4">
+            <h3 class="text-xl font-semibold mb-2">Lanjutan</h3>
             <fieldset class="border p-4 rounded-lg">
                 <legend class="text-sm font-medium px-1">Formulir Email</legend>
                 <div class="flex items-center">
-                    <input id="setting-email-signup" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                    <input id="setting-email-signup" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
                     <label for="setting-email-signup" class="ml-2 block text-sm">Tampilkan formulir pendaftaran email</label>
                 </div>
                 <button id="download-emails-btn" class="mt-3 w-full bg-gray-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-700 transition text-sm">Download Daftar Email (.csv)</button>
             </fieldset>
-            
-            <!-- Pengaturan Ikon Sosial -->
             <fieldset class="border p-4 rounded-lg">
                 <legend class="text-sm font-medium px-1">Ikon Sosial Media</legend>
-                <p class="text-xs text-gray-500 mb-2">Masukkan URL lengkap. Kosongkan untuk menyembunyikan.</p>
-                <div class="space-y-2">
-                    <input type="url" id="social-instagram" class="w-full p-2 border rounded-lg" placeholder="Instagram (https://instagram.com/...)">
-                    <input type="url" id="social-twitter" class="w-full p-2 border rounded-lg" placeholder="X / Twitter (https://x.com/...)">
-                    <input type="url" id="social-facebook" class="w-full p-2 border rounded-lg" placeholder="Facebook (https://facebook.com/...)">
-                    <input type="url" id="social-linkedin" class="w-full p-2 border rounded-lg" placeholder="LinkedIn (https://linkedin.com/in/...)">
-                    <input type="url" id="social-github" class="w-full p-2 border rounded-lg" placeholder="GitHub (https://github.com/...)">
-                    <input type="url" id="social-tiktok" class="w-full p-2 border rounded-lg" placeholder="TikTok (https://tiktok.com/@...)">
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="url" id="social-instagram" class="w-full p-2 border rounded-lg" placeholder="Instagram URL">
+                    <input type="url" id="social-twitter" class="w-full p-2 border rounded-lg" placeholder="X / Twitter URL">
+                    <input type="url" id="social-facebook" class="w-full p-2 border rounded-lg" placeholder="Facebook URL">
+                    <input type="url" id="social-linkedin" class="w-full p-2 border rounded-lg" placeholder="LinkedIn URL">
+                    <input type="url" id="social-github" class="w-full p-2 border rounded-lg" placeholder="GitHub URL">
+                    <input type="url" id="social-tiktok" class="w-full p-2 border rounded-lg" placeholder="TikTok URL">
                 </div>
             </fieldset>
-            
-            <button id="save-extras-btn" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition">Simpan Pengaturan Tambahan</button>
+            <fieldset class="border p-4 rounded-lg">
+                <legend class="text-sm font-medium px-1">Lain-lain</legend>
+                <div>
+                    <label for="setting-footer" class="block text-sm font-medium mb-1">Teks Footer Kustom</label>
+                    <input type="text" id="setting-footer" class="w-full p-2 border rounded-lg" placeholder="© 2025 Nama Anda">
+                </div>
+                <div class="mt-2">
+                    <label class="block text-sm font-medium">Page Views</label>
+                    <p id="page-views-admin" class="text-lg font-bold text-gray-800">0 views</p>
+                    <button id="reset-views-btn" class="text-xs text-red-600 hover:underline">Reset Views</button>
+                </div>
+            </fieldset>
+            <button id="save-advanced-btn" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition">Simpan Lanjutan</button>
         </div>
         
     </aside>
 
     <!-- Overlay untuk panel setting -->
-    <div id="settings-overlay" class="hidden fixed inset-0 bg-black/40 z-50"></div>
+    <div id="settings-overlay" class="hidden fixed inset-0 bg-black/40 z-40"></div>
 
-    <!-- ===== SCRIPT UTAMA ===== -->
+    <!-- ===== SCRIPT UTAMA (v2.1 - Bug Fix) ===== -->
     <script type="module">
         // --- 1. Impor Firebase ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { 
-            getAuth, 
-            signInAnonymously, 
-            onAuthStateChanged 
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { 
-            getFirestore, 
-            doc, 
-            getDoc, 
-            setDoc, 
-            updateDoc, 
-            onSnapshot, 
-            collection, 
-            addDoc,
-            serverTimestamp,
-            arrayUnion,
-            getDocs
+            getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, 
+            collection, addDoc, serverTimestamp, arrayUnion, arrayRemove,
+            getDocs, deleteDoc, query 
+            // PERBAIKAN: Menghapus 'getCount' yang menyebabkan error
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         // --- 2. Inisialisasi Firebase ---
         
-        // PERBAIKAN: Konfigurasi Anda sudah dimasukkan di sini
+        // KONFIGURASI ANDA SUDAH SAYA MASUKKAN
         const firebaseConfig = {
             apiKey: "AIzaSyCgQRwRFjKOXZI9pm40r3mdHZRHhC43dRU",
             authDomain: "xykallweb.firebaseapp.com",
@@ -388,19 +476,14 @@
             measurementId: "G-BE135G0NL2"
         };
         
-        // ID unik untuk aplikasi ini di database, berdasarkan projectId Anda
-        const appId = 'xykall-biolink-app'; 
-        
-        // Token autentikasi tidak ada di Vercel, jadi kita akan login anonim.
-        const initialAuthToken = null; 
-        
         let app, auth, db;
-        let currentUserId = null; // User ID pemilik browser
-        let viewedProfileId = null; // User ID profil yang sedang dilihat
-        let isOwner = false; // Apakah pemilik browser = pemilik profil
-        let profileData = {}; // Data profil yang sedang dilihat
-        let profileDocRef = null; // Referensi ke dokumen profil
-        let unsubscribeProfile = null; // Fungsi untuk stop listener onSnapshot
+        let currentUserId = null; 
+        let viewedProfileId = null; 
+        let isOwner = false; 
+        let profileData = {};
+        let profileDocRef = null;
+        let unsubscribeProfile = null;
+        let countdownInterval = null;
 
         // Inisialisasi Firebase
         try {
@@ -409,10 +492,7 @@
             db = getFirestore(app);
         } catch (e) {
             console.error("Error initializing Firebase: ", e);
-            const loadingSpinner = document.getElementById('loading-spinner');
-            if(loadingSpinner) {
-                loadingSpinner.innerHTML = `Gagal memuat aplikasi. Cek console. <br> Error: ${e.message}`;
-            }
+            document.getElementById('loading-text').textContent = `Gagal inisialisasi Firebase: ${e.message}`;
         }
 
         // --- 3. Variabel DOM ---
@@ -428,13 +508,13 @@
                     console.log("User authenticated:", user.uid);
                     currentUserId = user.uid;
                     determineViewedProfile();
-                } 
-                else {
+                } else {
                     console.log("Signing in anonymously...");
                     try {
                         await signInAnonymously(auth);
                     } catch (e) {
                         console.error("Error signing in anonymously:", e);
+                        $('#loading-text').textContent = `Gagal login anonim: ${e.message}`;
                     }
                 }
             });
@@ -445,9 +525,7 @@
             viewedProfileId = urlParams.get('profile') || currentUserId;
             isOwner = (currentUserId === viewedProfileId);
             
-            console.log(`Current User: ${currentUserId}`);
-            console.log(`Viewed Profile: ${viewedProfileId}`);
-            console.log(`Is Owner: ${isOwner}`);
+            console.log(`Current User: ${currentUserId} | Viewed Profile: ${viewedProfileId} | Is Owner: ${isOwner}`);
 
             if (isOwner) {
                 dom.ownerControls.classList.remove('hidden');
@@ -455,8 +533,8 @@
                 dom.ownerControls.classList.add('hidden');
             }
             
-            const collectionPath = `artifacts/${appId}/public/data/biolink_profiles`;
-            profileDocRef = doc(db, collectionPath, viewedProfileId);
+            // PATH BARU YANG LEBIH SEDERHANA
+            profileDocRef = doc(db, "biolinks", viewedProfileId);
             
             loadProfileData();
         }
@@ -464,34 +542,36 @@
         async function createDefaultProfile() {
             const defaultData = {
                 general: {
-                    name: 'Nama Anda',
-                    bio: 'Bio singkat Anda di sini.',
-                    picUrl: 'https://placehold.co/128x128/e0e0e0/7f7f7f?text=Foto'
+                    name: 'Nama Anda', bio: 'Bio singkat Anda di sini.',
+                    picUrl: 'https://placehold.co/128x128/e0e0e0/7f7f7f?text=Foto',
+                    verified: false,
+                    seoTitle: 'Profil BioLink Saya',
+                    seoDescription: 'Semua link saya di satu tempat.',
+                    favicon: 'https://placehold.co/32x32/007bff/ffffff?text=B'
                 },
                 links: [
-                    { 
-                        id: crypto.randomUUID(), 
-                        title: 'Link Contoh 1 (Edit Saya)', 
-                        url: '#', 
-                        icon: 'link',
-                        animation: 'none',
-                        clicks: 0
-                    }
+                    { id: crypto.randomUUID(), type: 'link', title: 'Link Contoh 1 (Edit Saya)', url: '#', icon: 'link', animation: 'none', highlight: false, thumbnail: '' },
+                    { id: crypto.randomUUID(), type: 'link', title: 'Link Contoh 2 (Edit Saya)', url: '#', icon: 'link', animation: 'none', highlight: false, thumbnail: '' }
                 ],
                 style: {
-                    theme: 'theme-light',
-                    bgImage: '',
-                    font: "'Inter', sans-serif"
+                    theme: 'theme-light', bgImage: '',
+                    font: "'Inter', sans-serif",
+                    buttonShape: 'link-shape-pill',
+                    cursor: ''
                 },
-                extras: {
+                widgets: {
                     songUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-                    songTitle: 'SoundHelix Song 1 - T. Schürger',
-                    videoUrl: '',
+                    songTitle: 'SoundHelix Song 1',
+                    videoUrl: '', spotifyUrl: '', twitchUrl: '',
+                    countdownTitle: '', countdownDate: ''
+                },
+                security: {
+                    password: '', sensitive: false
+                },
+                advanced: {
                     emailSignup: false,
-                    socials: {
-                        instagram: '', twitter: '', facebook: '',
-                        linkedin: '', github: '', tiktok: ''
-                    }
+                    footerText: 'Ditenagai oleh BioLink',
+                    socials: { instagram: '', twitter: '', facebook: '', linkedin: '', github: '', tiktok: '' }
                 },
                 createdAt: serverTimestamp()
             };
@@ -500,6 +580,7 @@
                 console.log("Default profile created.");
             } catch (e) {
                 console.error("Error creating default profile:", e);
+                $('#loading-text').textContent = `Gagal membuat profil: ${e.message}`;
             }
         }
 
@@ -507,24 +588,28 @@
             if (unsubscribeProfile) unsubscribeProfile(); 
 
             unsubscribeProfile = onSnapshot(profileDocRef, (docSnap) => {
-                if (!dom.loadingSpinner) {
-                    console.warn("DOM not ready, skipping snapshot render");
-                    return;
-                }
-                
-                dom.loadingSpinner.classList.add('hidden');
+                if (!dom.loadingSpinner) return;
                 
                 if (docSnap.exists()) {
-                    dom.errorMessage.classList.add('hidden');
+                    dom.loadingSpinner.classList.add('hidden');
                     dom.mainContent.classList.remove('opacity-0');
                     
                     profileData = docSnap.data();
                     console.log("Profile data loaded:", profileData);
                     
+                    // Cek keamanan dulu
+                    checkSecurity(profileData.security);
+                    
+                    // Render tampilan utama
                     renderProfileView(profileData);
                     
+                    // Jika pemilik, render juga panel pengaturan
                     if (isOwner) {
                         renderSettingsPanel(profileData);
+                        updateAdminStats(); // Ambil stats untuk admin
+                    } else {
+                        // Catat page view jika bukan owner
+                        logPageView();
                     }
                 } else {
                     console.log("No such profile!");
@@ -532,88 +617,200 @@
                         console.log("Creating default profile for owner...");
                         createDefaultProfile();
                     } else {
-                        dom.errorMessage.classList.remove('hidden');
-                        dom.mainContent.classList.add('opacity-0');
+                        $('#loading-text').textContent = 'Profil tidak ditemukan.';
+                        dom.loadingSpinner.classList.remove('hidden');
                     }
                 }
             }, (error) => {
                 console.error("Error loading profile data:", error);
-                // Tampilkan pesan error yang lebih spesifik jika karena permission
-                if (error.code === 'permission-denied') {
-                     dom.loadingSpinner.innerHTML = 'Gagal memuat profil. Error: Permission Denied. <br> **Pastikan Anda sudah mengatur Firestore Rules!**';
-                } else {
-                     dom.loadingSpinner.innerHTML = `Gagal memuat profil. Error: ${error.message}`;
-                }
+                // INI BAGIAN PENTING: Tampilkan error ke user
+                $('#loading-text').innerHTML = `Gagal memuat profil. <br><b class="text-red-600">Error: ${error.message}</b> <br> Cek Firestore Rules Anda!`;
+                dom.loadingSpinner.classList.remove('hidden');
+                dom.ownerControls.classList.add('hidden'); // Sembunyikan tombol setting jika error
             });
         }
         
-        function renderProfileView(data) {
-            const { general, links, style, extras } = data;
+        // --- 5. Fungsi Keamanan (Password, Sensitive) ---
+        
+        function checkSecurity(security) {
+            if (!security || (!security.password && !security.sensitive)) {
+                dom.modalOverlay.classList.add('hidden'); // Pastikan modal tersembunyi jika tidak ada security
+                return;
+            }
+
+            // Cek Password
+            if (security.password) {
+                const savedPass = sessionStorage.getItem(`pass_${viewedProfileId}`);
+                if (savedPass === security.password) {
+                    // Sudah memasukkan password, lanjutkan ke cek sensitive
+                } else {
+                    dom.modalOverlay.classList.remove('hidden');
+                    dom.passwordModal.classList.remove('hidden');
+                    dom.sensitiveModal.classList.add('hidden');
+                    return; // Stop rendering
+                }
+            }
             
+            // Cek Sensitive (hanya jika password sudah benar atau tidak ada password)
+            if (security.sensitive) {
+                const agreed = sessionStorage.getItem(`sensitive_${viewedProfileId}`);
+                if (agreed === 'true') {
+                    // Sudah setuju
+                    return;
+                }
+                dom.modalOverlay.classList.remove('hidden');
+                dom.passwordModal.classList.add('hidden');
+                dom.sensitiveModal.classList.remove('hidden');
+                // Render ikon di modal
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+                return; // Stop rendering
+            }
+        }
+        
+        function handlePasswordSubmit(e) {
+            e.preventDefault();
+            const pass = dom.passwordInput.value;
+            if (pass === profileData.security.password) {
+                sessionStorage.setItem(`pass_${viewedProfileId}`, pass);
+                dom.passwordModal.classList.add('hidden');
+                dom.passwordError.classList.add('hidden');
+                // Lanjutkan cek sensitive content
+                checkSecurity(profileData.security);
+            } else {
+                dom.passwordError.classList.remove('hidden');
+            }
+        }
+        
+        function handleSensitiveConfirm() {
+            sessionStorage.setItem(`sensitive_${viewedProfileId}`, 'true');
+            dom.modalOverlay.classList.add('hidden');
+            dom.sensitiveModal.classList.add('hidden');
+        }
+
+        // --- 6. Fungsi Render Tampilan ---
+
+        function renderProfileView(data) {
+            const { general, links, style, widgets, advanced } = data;
+            
+            // Render SEO & Style
             document.body.classList.remove('theme-light', 'theme-dark', 'theme-gradient');
             document.body.classList.add(style.theme || 'theme-light');
             document.documentElement.style.setProperty('--font-family', style.font || "'Inter', sans-serif");
+            document.documentElement.style.setProperty('--custom-cursor', style.cursor ? `url(${style.cursor}), auto` : 'auto');
             dom.appContainer.style.backgroundImage = style.bgImage ? `url(${style.bgImage})` : 'none';
-            document.title = `${general.name} | BioLink`;
+            
+            $('#seo-title').textContent = general.seoTitle || `${general.name} | BioLink`;
+            $('#seo-description').setAttribute('content', general.seoDescription || 'Semua link saya di satu tempat.');
+            $('#favicon').setAttribute('href', general.favicon || 'https://placehold.co/32x32/007bff/ffffff?text=B');
 
+            // Render General
             dom.profilePic.src = general.picUrl || 'https://placehold.co/128x128/e0e0e0/7f7f7f?text=Foto';
             dom.profileName.textContent = general.name || 'Nama Anda';
             dom.profileBio.textContent = general.bio || 'Bio Anda';
+            dom.verifiedBadge.classList.toggle('hidden', !general.verified);
 
+            // Render Links (Header, Thumbnail)
             dom.linksSection.innerHTML = '';
             if (links && links.length > 0) {
                 links.forEach(link => {
-                    const animationClass = link.animation !== 'none' ? `animate-${link.animation}` : '';
-                    const linkEl = document.createElement('a');
-                    linkEl.href = link.url;
-                    linkEl.target = '_blank';
-                    linkEl.rel = 'noopener noreferrer';
-                    linkEl.dataset.linkId = link.id;
-                    linkEl.className = `link-button w-full p-4 rounded-full shadow-lg flex items-center justify-center relative font-semibold text-center ${animationClass}`;
-                    
-                    linkEl.innerHTML = `
-                        <i data-lucide="${link.icon || 'link'}" class="absolute left-5 w-5 h-5"></i>
-                        <span>${link.title}</span>
-                        ${isOwner ? `<span class="absolute right-5 text-xs font-normal text-gray-500 flex items-center gap-1"><i data-lucide="bar-chart-2" class="w-3 h-3"></i> ${link.clicks || 0}</span>` : ''}
-                    `;
-                    
-                    linkEl.addEventListener('click', handleLinkClick);
-                    dom.linksSection.appendChild(linkEl);
+                    // Tipe Header
+                    if (link.type === 'header') {
+                        const headerEl = document.createElement('h2');
+                        headerEl.className = 'link-header';
+                        headerEl.textContent = link.title;
+                        dom.linksSection.appendChild(headerEl);
+                    }
+                    // Tipe Link
+                    else if (link.type === 'link') {
+                        const animationClass = link.animation !== 'none' ? `animate-${link.animation}` : '';
+                        const highlightClass = link.highlight ? 'animate-highlight-glow' : '';
+                        const linkEl = document.createElement('a');
+                        linkEl.href = link.url;
+                        linkEl.target = '_blank';
+                        linkEl.rel = 'noopener noreferrer';
+                        linkEl.dataset.linkId = link.id;
+                        linkEl.className = `link-button w-full p-3 shadow-lg flex items-center relative font-semibold ${style.buttonShape || 'link-shape-pill'} ${animationClass} ${highlightClass}`;
+                        
+                        let thumbnailHTML = '';
+                        if (link.thumbnail) {
+                            thumbnailHTML = `<img src="${link.thumbnail}" alt="thumbnail" class="link-thumbnail">`;
+                        }
+                        
+                        linkEl.innerHTML = `
+                            ${thumbnailHTML}
+                            <i data-lucide="${link.icon || 'link'}" class="${link.thumbnail ? '' : 'absolute left-5'} w-5 h-5"></i>
+                            <span class="text-center flex-1 ${link.thumbnail ? '' : 'ml-5'}">${link.title}</span>
+                            ${isOwner ? `<span class="absolute right-5 text-xs font-normal text-gray-500 flex items-center gap-1"><i data-lucide="bar-chart-2" class="w-3 h-3"></i> ${link.clicks || 0}</span>` : ''}
+                        `;
+                        linkEl.addEventListener('click', handleLinkClick);
+                        dom.linksSection.appendChild(linkEl);
+                    }
                 });
             }
 
-            const embedUrl = extras.videoUrl ? convertToEmbedUrl(extras.videoUrl) : null;
-            if (embedUrl) {
-                dom.videoIframe.src = embedUrl;
-                dom.videoEmbedSection.classList.remove('hidden');
+            // Render Widgets
+            // Musik
+            dom.audioPlayer.src = widgets.songUrl || '';
+            dom.songTitle.textContent = widgets.songTitle || 'Musik Tidak Tersedia';
+            dom.musicPopup.classList.toggle('hidden', !widgets.songUrl);
+            // YouTube
+            const embedUrl = widgets.videoUrl ? convertToEmbedUrl(widgets.videoUrl, 'youtube') : null;
+            dom.videoIframe.src = embedUrl || '';
+            dom.videoEmbedSection.classList.toggle('hidden', !embedUrl);
+            // Spotify
+            const spotifyUrl = widgets.spotifyUrl ? convertToEmbedUrl(widgets.spotifyUrl, 'spotify') : null;
+            dom.spotifyIframe.src = spotifyUrl || '';
+            dom.spotifyEmbedSection.classList.toggle('hidden', !spotifyUrl);
+            // Twitch
+            const twitchUrl = widgets.twitchUrl ? convertToEmbedUrl(widgets.twitchUrl, 'twitch') : null;
+            dom.twitchIframe.src = twitchUrl || '';
+            dom.twitchEmbedSection.classList.toggle('hidden', !twitchUrl);
+            // Countdown
+            if (countdownInterval) clearInterval(countdownInterval);
+            if (widgets.countdownDate) {
+                dom.countdownTitle.textContent = widgets.countdownTitle || 'Hitung Mundur';
+                const targetDate = new Date(widgets.countdownDate).getTime();
+                countdownInterval = setInterval(() => {
+                    const now = new Date().getTime();
+                    const distance = targetDate - now;
+                    if (distance < 0) {
+                        clearInterval(countdownInterval);
+                        dom.countdownTimer.textContent = "ACARA TELAH SELESAI";
+                    } else {
+                        const d = Math.floor(distance / (1000 * 60 * 60 * 24));
+                        const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                        const s = Math.floor((distance % (1000 * 60)) / 1000);
+                        dom.countdownTimer.textContent = `${d}h : ${h}j : ${m}m : ${s}d`;
+                    }
+                }, 1000);
+                dom.countdownSection.classList.remove('hidden');
             } else {
-                dom.videoEmbedSection.classList.add('hidden');
+                dom.countdownSection.classList.add('hidden');
             }
 
-            dom.emailSignupSection.classList.toggle('hidden', !extras.emailSignup);
+            // Render Advanced
+            dom.emailSignupSection.classList.toggle('hidden', !advanced.emailSignup);
+            dom.customFooter.textContent = advanced.footerText || '';
             
             dom.socialIconsSection.innerHTML = '';
             const socialMap = {
                 instagram: 'instagram', twitter: 'twitter', facebook: 'facebook',
                 linkedin: 'linkedin', github: 'github', tiktok: 'tiktok'
             };
-            for (const [key, icon] of Object.entries(socialMap)) {
-                if (extras.socials && extras.socials[key]) {
-                    const socialEl = document.createElement('a');
-                    socialEl.href = extras.socials[key];
-                    socialEl.target = '_blank';
-                    socialEl.rel = 'noopener noreferrer';
-                    socialEl.title = key.charAt(0).toUpperCase() + key.slice(1);
-                    socialEl.className = 'hover:scale-125 transition-transform';
-                    socialEl.style.color = 'var(--text-color)';
-                    socialEl.innerHTML = `<i data-lucide="${icon}" class="w-7 h-7"></i>`;
-                    dom.socialIconsSection.appendChild(socialEl);
+            if(advanced.socials) {
+                for (const [key, icon] of Object.entries(socialMap)) {
+                    if (advanced.socials[key]) {
+                        const socialEl = document.createElement('a');
+                        socialEl.href = advanced.socials[key];
+                        socialEl.target = '_blank';
+                        socialEl.className = 'hover:scale-125 transition-transform';
+                        socialEl.style.color = 'var(--text-color)';
+                        socialEl.innerHTML = `<i data-lucide="${icon}" class="w-7 h-7"></i>`;
+                        dom.socialIconsSection.appendChild(socialEl);
+                    }
                 }
             }
-
-            dom.audioPlayer.src = extras.songUrl || '';
-            dom.songTitle.textContent = extras.songTitle || 'Musik Tidak Tersedia';
-            dom.musicPopup.classList.toggle('hidden', !extras.songUrl);
             
             if (typeof lucide !== 'undefined') {
                 lucide.createIcons();
@@ -622,261 +819,202 @@
             }
         }
         
+        // --- 7. Fungsi Render Panel Admin ---
+        
         function renderSettingsPanel(data) {
-            const { general, links, style, extras } = data;
+            const { general, links, style, widgets, security, advanced } = data;
             
+            // Tab Share
             const shareUrl = `${window.location.origin}${window.location.pathname}?profile=${viewedProfileId}`;
             dom.shareLinkInput.value = shareUrl;
             dom.qrcodeEl.innerHTML = '';
-            if (typeof QRCode !== 'undefined') {
-                new QRCode(dom.qrcodeEl, {
-                    text: shareUrl, width: 192, height: 192,
-                    colorDark: "#000000", colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.H
-                });
-            }
+            new QRCode(dom.qrcodeEl, { text: shareUrl, width: 192, height: 192 });
 
+            // Tab General
             $('#setting-name').value = general.name;
             $('#setting-bio').value = general.bio;
             $('#setting-pic-url').value = general.picUrl;
+            $('#setting-verified').checked = general.verified;
+            $('#setting-seo-title').value = general.seoTitle;
+            $('#setting-seo-desc').value = general.seoDescription;
+            $('#setting-favicon').value = general.favicon;
             
+            // Tab Links
             const linksEditorList = $('#links-editor-list');
             linksEditorList.innerHTML = '';
             links.forEach((link, index) => {
                 const editorEl = document.createElement('div');
                 editorEl.className = 'p-4 border rounded-lg bg-gray-50';
                 editorEl.dataset.linkId = link.id;
-                editorEl.innerHTML = `
-                    <div class="flex justify-between items-center mb-3">
-                        <span class="font-semibold text-gray-700">Link ${index + 1}</span>
-                        <button class="btn-delete-link text-red-600 hover:text-red-800 p-1" title="Hapus Link">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                    <div class="space-y-2">
-                        <input type="text" class="setting-link-title w-full p-2 border rounded-lg" value="${link.title}" placeholder="Judul Link">
-                        <input type="url" class="setting-link-url w-full p-2 border rounded-lg" value="${link.url}" placeholder="URL (https://...)">
-                        <div class="flex gap-2">
-                            <input type="text" class="setting-link-icon flex-1 w-full p-2 border rounded-lg" value="${link.icon}" placeholder="Ikon Lucide (cth: 'link')">
-                            <select class="setting-link-animation flex-1 w-full p-2 border rounded-lg bg-white">
-                                <option value="none" ${link.animation === 'none' ? 'selected' : ''}>Animasi: Diam</option>
-                                <option value="pulse-slow" ${link.animation === 'pulse-slow' ? 'selected' : ''}>Animasi: Berdenyut</option>
-                                <option value="shake" ${link.animation === 'shake' ? 'selected' : ''}>Animasi: Bergetar</option>
-                                <option value="bounce-fast" ${link.animation === 'bounce-fast' ? 'selected' : ''}>Animasi: Memantul</option>
-                            </select>
+                editorEl.dataset.linkType = link.type;
+                
+                if (link.type === 'header') {
+                    editorEl.innerHTML = `
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-semibold text-gray-700">Header</span>
+                            <button class="btn-delete-link text-red-600 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                         </div>
-                    </div>
-                `;
+                        <input type="text" class="setting-link-title w-full p-2 border rounded-lg" value="${link.title}" placeholder="Judul Header">
+                    `;
+                } else {
+                    editorEl.innerHTML = `
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="font-semibold text-gray-700">Link ${index + 1}</span>
+                            <button class="btn-delete-link text-red-600 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                        <div class="space-y-2">
+                            <input type="text" class="setting-link-title w-full p-2 border rounded-lg" value="${link.title}" placeholder="Judul Link">
+                            <input type="url" class="setting-link-url w-full p-2 border rounded-lg" value="${link.url}" placeholder="URL">
+                            <input type="url" class="setting-link-thumbnail w-full p-2 border rounded-lg" value="${link.thumbnail || ''}" placeholder="URL Thumbnail (Opsional)">
+                            <div class="flex gap-2">
+                                <input type="text" class="setting-link-icon flex-1 w-full p-2 border rounded-lg" value="${link.icon}" placeholder="Ikon Lucide">
+                                <select class="setting-link-animation flex-1 w-full p-2 border rounded-lg bg-white">
+                                    <option value="none" ${link.animation === 'none' ? 'selected' : ''}>Animasi: Diam</option>
+                                    <option value="pulse-slow" ${link.animation === 'pulse-slow' ? 'selected' : ''}>Animasi: Denyut</option>
+                                    <option value="shake" ${link.animation === 'shake' ? 'selected' : ''}>Animasi: Getar</option>
+                                    <option value="bounce-fast" ${link.animation === 'bounce-fast' ? 'selected' : ''}>Animasi: Pantul</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center">
+                                <input id="highlight-${link.id}" type="checkbox" class="setting-link-highlight h-4 w-4 text-blue-600 border-gray-300 rounded" ${link.highlight ? 'checked' : ''}>
+                                <label for="highlight-${link.id}" class="ml-2 block text-sm">Prioritaskan (Highlight Glow)</label>
+                            </div>
+                        </div>
+                    `;
+                }
                 linksEditorList.appendChild(editorEl);
             });
             
-            $$('.theme-select-btn').forEach(btn => {
-                btn.classList.toggle('ring-2', btn.dataset.theme === style.theme);
-                btn.classList.toggle('ring-blue-500', btn.dataset.theme === style.theme);
-            });
+            // Tab Style
+            $$('.theme-select-btn').forEach(btn => btn.classList.toggle('ring-2', btn.dataset.theme === style.theme));
             $('#setting-bg-image').value = style.bgImage || '';
             $('#setting-font').value = style.font || "'Inter', sans-serif";
+            $('#setting-button-shape').value = style.buttonShape || 'link-shape-pill';
+            $('#setting-cursor').value = style.cursor || '';
             
-            $('#setting-song-url').value = extras.songUrl || '';
-            $('#setting-song-title').value = extras.songTitle || '';
-            $('#setting-video-url').value = extras.videoUrl || '';
-            $('#setting-email-signup').checked = extras.emailSignup || false;
-            
-            if (extras.socials) {
+            // Tab Widgets
+            $('#setting-song-url').value = widgets.songUrl || '';
+            $('#setting-song-title').value = widgets.songTitle || '';
+            $('#setting-video-url').value = widgets.videoUrl || '';
+            $('#setting-spotify-url').value = widgets.spotifyUrl || '';
+            $('#setting-twitch-url').value = widgets.twitchUrl || '';
+            $('#setting-countdown-title').value = widgets.countdownTitle || '';
+            $('#setting-countdown-date').value = widgets.countdownDate || '';
+
+            // Tab Security
+            $('#setting-password').value = security.password || '';
+            $('#setting-sensitive').checked = security.sensitive || false;
+
+            // Tab Advanced
+            $('#setting-email-signup').checked = advanced.emailSignup || false;
+            $('#setting-footer').value = advanced.footerText || '';
+            if(advanced.socials) {
                 for (const key of ['instagram', 'twitter', 'facebook', 'linkedin', 'github', 'tiktok']) {
-                    $(`#social-${key}`).value = extras.socials[key] || '';
+                    $(`#social-${key}`).value = advanced.socials[key] || '';
                 }
             }
 
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
+            if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
-        function setupSettingsListeners() {
-            dom.toggleSettingsBtn.onclick = () => {
-                dom.settingsPanel.classList.remove('translate-x-full');
-                dom.settingsOverlay.classList.remove('hidden');
-            };
-            dom.closeSettingsBtn.onclick = dom.settingsOverlay.onclick = () => {
-                dom.settingsPanel.classList.add('translate-x-full');
-                dom.settingsOverlay.classList.add('hidden');
-            };
-            
-            $$('.tab-btn').forEach(btn => {
-                btn.onclick = (e) => {
-                    $$('.tab-content').forEach(tab => tab.classList.add('hidden'));
-                    $(`#${e.target.dataset.tab}`).classList.remove('hidden');
-                    
-                    $$('.tab-btn').forEach(b => b.classList.remove('text-blue-600', 'border-blue-600'));
-                    e.target.classList.add('text-blue-600', 'border-blue-600');
-                };
-            });
-            const defaultTab = $('.tab-btn[data-tab="tab-share"]');
-            if(defaultTab) defaultTab.click();
-
-            $('#save-general-btn').onclick = saveGeneralSettings;
-            $('#save-style-btn').onclick = saveStyleSettings;
-            $('#save-extras-btn').onclick = saveExtrasSettings;
-            $('#add-link-btn').onclick = addLink;
-
-            dom.copyLinkBtn.onclick = () => {
-                dom.shareLinkInput.select();
-                try {
-                    document.execCommand('copy');
-                    dom.copyLinkBtn.textContent = 'Disalin!';
-                } catch (err) {
-                    dom.copyLinkBtn.textContent = 'Gagal Salin';
-                }
-                setTimeout(() => dom.copyLinkBtn.textContent = 'Salin Link', 2000);
-            };
-
-            $('#download-emails-btn').onclick = downloadEmails;
-
-            $('#links-editor-list').addEventListener('click', (e) => {
-                const deleteBtn = e.target.closest('.btn-delete-link');
-                if (deleteBtn) {
-                    const linkEditor = deleteBtn.closest('[data-link-id]');
-                    deleteLink(linkEditor.dataset.linkId);
-                }
-            });
-            
-            $('#links-editor-list').addEventListener('change', (e) => {
-                const input = e.target.closest('input, select');
-                if (input) {
-                    const linkEditor = input.closest('[data-link-id]');
-                    updateLink(linkEditor.dataset.linkId, linkEditor);
-                }
-            });
-            
-            dom.emailForm.onsubmit = handleEmailSubmit;
-            dom.musicIconContainer.onclick = toggleMusic;
-            dom.goHomeBtn.onclick = () => { window.location.search = ''; };
-            
-            $$('.theme-select-btn').forEach(btn => {
-                btn.onclick = () => {
-                    $$('.theme-select-btn').forEach(b => {
-                        b.classList.remove('ring-2', 'ring-blue-500');
-                        b.setAttribute('aria-pressed', 'false');
-                    });
-                    btn.classList.add('ring-2', 'ring-blue-500');
-                    btn.setAttribute('aria-pressed', 'true');
-                };
-            });
-
-            console.log("Settings listeners attached.");
-        }
-        
-        // --- 5. Fungsi Simpan & Aksi ---
+        // --- 8. Fungsi Simpan & Aksi ---
 
         function showSaveNotification() {
             dom.saveNotification.classList.remove('hidden');
-            setTimeout(() => {
-                dom.saveNotification.classList.add('hidden');
-            }, 3000);
+            setTimeout(() => dom.saveNotification.classList.add('hidden'), 3000);
         }
 
-        async function saveGeneralSettings() {
-            const data = {
-                general: {
-                    name: $('#setting-name').value,
-                    bio: $('#setting-bio').value,
-                    picUrl: $('#setting-pic-url').value
+        async function saveAllSettings() {
+            // Dapatkan data dari setiap tab
+            const general = {
+                name: $('#setting-name').value, bio: $('#setting-bio').value,
+                picUrl: $('#setting-pic-url').value, verified: $('#setting-verified').checked,
+                seoTitle: $('#setting-seo-title').value, seoDescription: $('#setting-seo-desc').value,
+                favicon: $('#setting-favicon').value
+            };
+            
+            const links = [];
+            $$('#links-editor-list > div').forEach(editorEl => {
+                const id = editorEl.dataset.linkId;
+                const type = editorEl.dataset.linkType;
+                const title = editorEl.querySelector('.setting-link-title').value;
+                if (type === 'header') {
+                    links.push({ id, type, title });
+                } else {
+                    links.push({
+                        id, type, title,
+                        url: editorEl.querySelector('.setting-link-url').value,
+                        thumbnail: editorEl.querySelector('.setting-link-thumbnail').value,
+                        icon: editorEl.querySelector('.setting-link-icon').value,
+                        animation: editorEl.querySelector('.setting-link-animation').value,
+                        highlight: editorEl.querySelector('.setting-link-highlight').checked,
+                        clicks: profileData.links.find(l => l.id === id)?.clicks || 0 // Pertahankan clicks
+                    });
+                }
+            });
+
+            const style = {
+                theme: $('.theme-select-btn.ring-2')?.dataset.theme || 'theme-light',
+                bgImage: $('#setting-bg-image').value,
+                font: $('#setting-font').value,
+                buttonShape: $('#setting-button-shape').value,
+                cursor: $('#setting-cursor').value
+            };
+            
+            const widgets = {
+                songUrl: $('#setting-song-url').value, songTitle: $('#setting-song-title').value,
+                videoUrl: $('#setting-video-url').value, spotifyUrl: $('#setting-spotify-url').value,
+                twitchUrl: $('#setting-twitch-url').value,
+                countdownTitle: $('#setting-countdown-title').value, countdownDate: $('#setting-countdown-date').value
+            };
+            
+            const security = {
+                password: $('#setting-password').value,
+                sensitive: $('#setting-sensitive').checked
+            };
+            
+            const advanced = {
+                emailSignup: $('#setting-email-signup').checked,
+                footerText: $('#setting-footer').value,
+                socials: {
+                    instagram: $('#social-instagram').value, twitter: $('#social-twitter').value,
+                    facebook: $('#social-facebook').value, linkedin: $('#social-linkedin').value,
+                    github: $('#social-github').value, tiktok: $('#social-tiktok').value,
                 }
             };
+            
+            // Gabungkan semua data
+            const fullData = { ...profileData, general, links, style, widgets, security, advanced };
+            
             try {
-                await setDoc(profileDocRef, data, { merge: true });
+                await setDoc(profileDocRef, fullData, { merge: true });
                 showSaveNotification();
-            } catch (e) { console.error("Error saving general settings:", e); }
-        }
-        
-        async function saveStyleSettings() {
-            const selectedThemeBtn = $('.theme-select-btn.ring-blue-500');
-            const data = {
-                style: {
-                    theme: selectedThemeBtn ? selectedThemeBtn.dataset.theme : 'theme-light',
-                    bgImage: $('#setting-bg-image').value,
-                    font: $('#setting-font').value
-                }
-            };
-            try {
-                await setDoc(profileDocRef, data, { merge: true });
-                showSaveNotification();
-            } catch (e) { console.error("Error saving style settings:", e); }
-        }
-        
-        async function saveExtrasSettings() {
-            const data = {
-                extras: {
-                    songUrl: $('#setting-song-url').value,
-                    songTitle: $('#setting-song-title').value,
-                    videoUrl: $('#setting-video-url').value,
-                    emailSignup: $('#setting-email-signup').checked,
-                    socials: {
-                        instagram: $('#social-instagram').value,
-                        twitter: $('#social-twitter').value,
-                        facebook: $('#social-facebook').value,
-                        linkedin: $('#social-linkedin').value,
-                        github: $('#social-github').value,
-                        tiktok: $('#social-tiktok').value,
-                    }
-                }
-            };
-            try {
-                await setDoc(profileDocRef, data, { merge: true });
-                showSaveNotification();
-            } catch (e) { console.error("Error saving extras settings:", e); }
+            } catch (e) { console.error("Error saving settings:", e); }
         }
 
         async function addLink() {
             const newLink = {
-                id: crypto.randomUUID(),
-                title: 'Link Baru',
-                url: '#',
-                icon: 'link',
-                animation: 'none',
-                clicks: 0
+                id: crypto.randomUUID(), type: 'link',
+                title: 'Link Baru', url: '#', icon: 'link',
+                animation: 'none', highlight: false, thumbnail: '', clicks: 0
             };
-            try {
-                await updateDoc(profileDocRef, {
-                    links: arrayUnion(newLink)
-                });
-                showSaveNotification();
-            } catch (e) { console.error("Error adding new link:", e); }
+            await updateDoc(profileDocRef, { links: arrayUnion(newLink) });
         }
         
-        async function updateLink(linkId, editorElement) {
-            if (!profileData.links) profileData.links = [];
-            
-            const newLinks = profileData.links.map(link => {
-                if (link.id === linkId) {
-                    return {
-                        ...link,
-                        id: linkId,
-                        title: editorElement.querySelector('.setting-link-title').value,
-                        url: editorElement.querySelector('.setting-link-url').value,
-                        icon: editorElement.querySelector('.setting-link-icon').value,
-                        animation: editorElement.querySelector('.setting-link-animation').value
-                    };
-                }
-                return link;
-            });
-            
-            try {
-                await updateDoc(profileDocRef, { links: newLinks });
-            } catch (e) { console.error("Error updating link:", e); }
+        async function addHeader() {
+            const newHeader = {
+                id: crypto.randomUUID(), type: 'header',
+                title: 'Judul Kategori Baru'
+            };
+            await updateDoc(profileDocRef, { links: arrayUnion(newHeader) });
         }
         
         async function deleteLink(linkId) {
-            if (window.prompt("Ketik 'HAPUS' untuk mengonfirmasi penghapusan link ini.") !== 'HAPUS') {
-                 return;
-            }
-            
-            const newLinks = profileData.links.filter(link => link.id !== linkId);
-            try {
-                await updateDoc(profileDocRef, { links: newLinks });
+            const linkToDelete = profileData.links.find(l => l.id === linkId);
+            if (linkToDelete && confirm(`Yakin ingin menghapus "${linkToDelete.title}"?`)) {
+                await updateDoc(profileDocRef, { links: arrayRemove(linkToDelete) });
                 showSaveNotification();
-            } catch (e) { console.error("Error deleting link:", e); }
+            }
         }
         
         async function handleLinkClick(e) {
@@ -885,7 +1023,7 @@
             const linkEl = e.currentTarget;
             const linkId = linkEl.dataset.linkId;
             const targetUrl = linkEl.href;
-            if (!profileData.links) profileData.links = [];
+            
             const newLinks = profileData.links.map(link => {
                 if (link.id === linkId) {
                     return { ...link, clicks: (link.clicks || 0) + 1 };
@@ -894,9 +1032,8 @@
             });
             try {
                 await updateDoc(profileDocRef, { links: newLinks });
-            } catch (e) {
-                console.error("Error updating click count:", e);
-            }
+            } catch (e) { console.error("Error updating click count:", e); }
+            
             window.open(targetUrl, '_blank');
         }
 
@@ -904,48 +1041,75 @@
             e.preventDefault();
             const email = dom.emailInput.value;
             if (!email) return;
-
             const emailsCollectionRef = collection(db, profileDocRef.path, 'emails');
             try {
-                await addDoc(emailsCollectionRef, {
-                    email: email,
-                    collectedAt: serverTimestamp()
-                });
+                await addDoc(emailsCollectionRef, { email: email, collectedAt: serverTimestamp() });
                 dom.emailSuccessMsg.classList.remove('hidden');
-                dom.emailErrorMsg.classList.add('hidden');
                 dom.emailInput.value = '';
                 setTimeout(() => dom.emailSuccessMsg.classList.add('hidden'), 3000);
-            } catch (e) {
-                console.error("Error saving email:", e);
-                dom.emailErrorMsg.classList.remove('hidden');
-                dom.emailSuccessMsg.classList.add('hidden');
-                setTimeout(() => dom.emailErrorMsg.classList.add('hidden'), 3000);
-            }
+            } catch (e) { console.error("Error saving email:", e); }
         }
         
         async function downloadEmails() {
             const emailsCollectionRef = collection(db, profileDocRef.path, 'emails');
+            const querySnapshot = await getDocs(emailsCollectionRef);
+            let csvContent = "data:text/csv;charset=utf-t8,Email,CollectedAt\n";
+            querySnapshot.forEach(doc => {
+                const data = doc.data();
+                const date = data.collectedAt?.toDate ? data.collectedAt.toDate().toISOString() : 'N/A';
+                csvContent += `${data.email},${date}\n`;
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `emails_${viewedProfileId}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Fungsi Statistik Admin (Fitur Baru)
+        async function logPageView() {
             try {
-                const querySnapshot = await getDocs(emailsCollectionRef);
-                let csvContent = "data:text/csv;charset=utf-t8,Email,CollectedAt\n";
-                querySnapshot.forEach(doc => {
-                    const data = doc.data();
-                    const date = data.collectedAt?.toDate ? data.collectedAt.toDate().toISOString() : 'N/A';
-                    csvContent += `${data.email},${date}\n`;
-                });
+                const viewsCollectionRef = collection(db, profileDocRef.path, 'pageviews');
+                await addDoc(viewsCollectionRef, { viewedAt: serverTimestamp() });
+                console.log("Page view logged.");
+            } catch (e) { console.error("Error logging page view:", e); }
+        }
+
+        async function updateAdminStats() {
+            // Tampilkan page views
+            const viewsCollectionRef = collection(db, profileDocRef.path, 'pageviews');
+            
+            // PERBAIKAN: Mengganti getCount() dengan getDocs() lalu .size
+            try {
+                const snapshot = await getDocs(query(viewsCollectionRef)); 
+                const count = snapshot.size; 
                 
-                const encodedUri = encodeURI(csvContent);
-                const link = document.createElement("a");
-                link.setAttribute("href", encodedUri);
-                link.setAttribute("download", `emails_${viewedProfileId}.csv`);
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            } catch (e) {
-                console.error("Error downloading emails:", e);
-                alert("Gagal mengunduh daftar email.");
+                $('#page-views').classList.remove('hidden');
+                $('#page-views').querySelector('span').textContent = `Dilihat ${count} kali`;
+                $('#page-views-admin').textContent = `${count} views`;
+            } catch(e) {
+                console.error("Error getting page view count:", e);
+                $('#page-views-admin').textContent = "Gagal hitung";
             }
         }
+        
+        async function resetViews() {
+            if (confirm("Yakin ingin mereset page views menjadi 0?")) {
+                const viewsCollectionRef = collection(db, profileDocRef.path, 'pageviews');
+                const querySnapshot = await getDocs(viewsCollectionRef);
+                // Hapus dokumen satu per satu
+                const deletePromises = [];
+                querySnapshot.forEach(doc => {
+                    deletePromises.push(deleteDoc(doc.ref));
+                });
+                await Promise.all(deletePromises);
+                updateAdminStats(); // Update hitungan jadi 0
+            }
+        }
+
+        // --- 9. Fungsi Helper ---
 
         function toggleMusic() {
             const isPlaying = !dom.audioPlayer.paused;
@@ -959,27 +1123,28 @@
                 dom.musicIconContainer.querySelector('[data-lucide="pause"]').classList.remove('hidden');
             }
         }
-        
-        function onMusicEnded() {
-            dom.musicIconContainer.querySelector('[data-lucide="music"]').classList.remove('hidden');
-            dom.musicIconContainer.querySelector('[data-lucide="pause"]').classList.add('hidden');
-        }
 
-        // --- 6. Fungsi Helper ---
-
-        function convertToEmbedUrl(url) {
+        function convertToEmbedUrl(url, type) {
             if (!url) return null;
-            let videoId = null;
             try {
                 const urlObj = new URL(url);
-                if (urlObj.hostname === 'youtu.be') {
-                    videoId = urlObj.pathname.slice(1);
-                } else if (urlObj.hostname.includes('youtube.com')) {
-                    videoId = urlObj.searchParams.get('v');
+                if (type === 'youtube') {
+                    let videoId = urlObj.searchParams.get('v');
+                    if (urlObj.hostname === 'youtu.be') videoId = urlObj.pathname.slice(1);
+                    return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
                 }
-                return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+                if (type === 'spotify') {
+                    return url.replace('open.spotify.com', 'open.spotify.com/embed');
+                }
+                if (type === 'twitch') {
+                    if (urlObj.hostname === 'www.twitch.tv' || urlObj.hostname === 'twitch.tv') {
+                        const channel = urlObj.pathname.slice(1);
+                        return `https://player.twitch.tv/?channel=${channel}&parent=${window.location.hostname}`;
+                    }
+                }
+                return null;
             } catch (e) {
-                console.warn("Invalid video URL:", url);
+                console.warn("Invalid embed URL:", url);
                 return null;
             }
         }
@@ -994,34 +1159,40 @@
             };
             for (const font in fonts) {
                 const link = document.createElement('link');
-                link.href = fonts[font];
-                link.rel = 'stylesheet';
+                link.href = fonts[font]; link.rel = 'stylesheet';
                 document.head.appendChild(link);
             }
         }
 
-        // --- 7. Inisialisasi Aplikasi ---
+        // --- 10. Inisialisasi Aplikasi ---
         document.addEventListener("DOMContentLoaded", () => {
-            console.log("DOM Loaded. Initializing app...");
+            console.log("DOM Loaded. Initializing app v2.1 (bugfix)...");
             
+            // Definisi DOM
             dom = {
                 loadingSpinner: $('#loading-spinner'),
-                errorMessage: $('#error-message'),
-                goHomeBtn: $('#go-home-btn'),
                 mainContent: $('#main-content'),
                 appContainer: $('#app-container'),
                 profilePic: $('#profile-pic'),
                 profileName: $('#profile-name'),
                 profileBio: $('#profile-bio'),
+                verifiedBadge: $('#verified-badge'),
                 videoEmbedSection: $('#video-embed-section'),
                 videoIframe: $('#video-iframe'),
+                spotifyEmbedSection: $('#spotify-embed-section'),
+                spotifyIframe: $('#spotify-iframe'),
+                twitchEmbedSection: $('#twitch-embed-section'),
+                twitchIframe: $('#twitch-iframe'),
+                countdownSection: $('#countdown-section'),
+                countdownTitle: $('#countdown-title'),
+                countdownTimer: $('#countdown-timer'),
                 linksSection: $('#links-section'),
                 emailSignupSection: $('#email-signup-section'),
                 emailForm: $('#email-form'),
                 emailInput: $('#email-input'),
                 emailSuccessMsg: $('#email-success-msg'),
-                emailErrorMsg: $('#email-error-msg'),
                 socialIconsSection: $('#social-icons-section'),
+                customFooter: $('#custom-footer'),
                 musicPopup: $('#music-player-popup'),
                 musicIconContainer: $('#music-icon-container'),
                 songTitle: $('#song-title'),
@@ -1034,31 +1205,88 @@
                 saveNotification: $('#save-notification'),
                 shareLinkInput: $('#share-link-input'),
                 copyLinkBtn: $('#copy-link-btn'),
-                qrcodeContainer: $('#qrcode-container'),
                 qrcodeEl: $('#qrcode'),
+                modalOverlay: $('#modal-overlay'),
+                passwordModal: $('#password-modal'),
+                passwordForm: $('#password-form'),
+                passwordInput: $('#password-input'),
+                passwordError: $('#password-error'),
+                sensitiveModal: $('#sensitive-modal'),
+                sensitiveConfirmBtn: $('#sensitive-confirm-btn'),
             };
 
             loadCustomFonts();
-            dom.audioPlayer.onended = onMusicEnded;
-            setupSettingsListeners();
-
-            if (app) {
-                handleAuth();
-            } else {
-                console.error("Firebase app is not initialized. Auth process stopped.");
+            
+            // --- Event Listeners ---
+            dom.audioPlayer.onended = () => {
+                dom.musicIconContainer.querySelector('[data-lucide="music"]').classList.remove('hidden');
+                dom.musicIconContainer.querySelector('[data-lucide="pause"]').classList.add('hidden');
             }
+            dom.musicIconContainer.onclick = toggleMusic;
+            
+            // Modals
+            dom.passwordForm.onsubmit = handlePasswordSubmit;
+            dom.sensitiveConfirmBtn.onclick = handleSensitiveConfirm;
+            
+            // Toggle panel
+            dom.toggleSettingsBtn.onclick = () => dom.settingsPanel.classList.remove('translate-x-full');
+            dom.closeSettingsBtn.onclick = dom.settingsOverlay.onclick = () => dom.settingsPanel.classList.add('translate-x-full');
+            
+            // Tab
+            $$('.tab-btn').forEach(btn => {
+                btn.onclick = (e) => {
+                    $$('.tab-content').forEach(tab => tab.classList.add('hidden'));
+                    $(`#${e.target.dataset.tab}`).classList.remove('hidden');
+                    $$('.tab-btn').forEach(b => b.classList.remove('text-blue-600', 'border-blue-600'));
+                    e.target.classList.add('text-blue-600', 'border-blue-600');
+                };
+            });
+            // Buka tab default
+            const defaultTab = $('.tab-btn[data-tab="tab-share"]');
+            if(defaultTab) defaultTab.click();
 
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            } else {
-                setTimeout(() => {
-                    if (typeof lucide !== 'undefined') lucide.createIcons();
-                    else console.error("Lucide failed to load.");
-                }, 500);
-            }
+            // Tombol Simpan (Ganti jadi 1 tombol per tab)
+            $('#save-general-btn').onclick = saveAllSettings;
+            $('#save-style-btn').onclick = saveAllSettings;
+            $('#save-widgets-btn').onclick = saveAllSettings;
+            $('#save-security-btn').onclick = saveAllSettings;
+            $('#save-advanced-btn').onclick = saveAllSettings;
+            
+            // Aksi di Tab Link
+            $('#add-link-btn').onclick = addLink;
+            $('#add-header-btn').onclick = addHeader;
+            $('#links-editor-list').addEventListener('click', (e) => {
+                if (e.target.closest('.btn-delete-link')) {
+                    deleteLink(e.target.closest('[data-link-id]').dataset.linkId);
+                }
+            });
+            // Simpan otomatis saat edit link
+            $('#links-editor-list').addEventListener('change', saveAllSettings);
+            
+            // Aksi Lain
+            dom.copyLinkBtn.onclick = () => {
+                dom.shareLinkInput.select();
+                try { document.execCommand('copy'); } catch(e) {}
+                dom.copyLinkBtn.textContent = 'Disalin!';
+                setTimeout(() => dom.copyLinkBtn.textContent = 'Salin Link', 2000);
+            };
+            dom.emailForm.onsubmit = handleEmailSubmit;
+            $('#download-emails-btn').onclick = downloadEmails;
+            $('#reset-views-btn').onclick = resetViews;
+            
+            // Listener untuk tombol tema
+            $$('.theme-select-btn').forEach(btn => {
+                btn.onclick = () => {
+                    $$('.theme-select-btn').forEach(b => b.classList.remove('ring-2'));
+                    btn.classList.add('ring-2');
+                };
+            });
+
+            if (app) handleAuth();
+            if (typeof lucide !== 'undefined') lucide.createIcons();
         });
-
     </script>
 
 </body>
 </html>
+
