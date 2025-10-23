@@ -359,7 +359,6 @@
         import { 
             getAuth, 
             signInAnonymously, 
-            signInWithCustomToken, 
             onAuthStateChanged 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { 
@@ -373,16 +372,12 @@
             addDoc,
             serverTimestamp,
             arrayUnion,
-            increment,
-            getDocs // Ditambahkan untuk download CSV
+            getDocs
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         // --- 2. Inisialisasi Firebase ---
         
-        // !!! PENTING UNTUK DEPLOYMENT VERCEL !!!
-        // Ganti object kosong {} di bawah dengan Firebase Config Anda
-        // Anda bisa mendapatkannya dari Firebase Console:
-        // Project Settings > General > Your apps > Web app > SDK setup and configuration
+        // PERBAIKAN: Konfigurasi Anda sudah dimasukkan di sini
         const firebaseConfig = {
             apiKey: "AIzaSyCgQRwRFjKOXZI9pm40r3mdHZRHhC43dRU",
             authDomain: "xykallweb.firebaseapp.com",
@@ -390,14 +385,13 @@
             storageBucket: "xykallweb.firebasestorage.app",
             messagingSenderId: "168467365781",
             appId: "1:168467365781:web:572a3b567bc0e905b9809c",
+            measurementId: "G-BE135G0NL2"
         };
         
-        // ID unik untuk aplikasi ini di database. Anda bisa ganti jika mau.
-        // Ini menggantikan '__app_id'
-        const appId = 'xykall'; 
+        // ID unik untuk aplikasi ini di database, berdasarkan projectId Anda
+        const appId = 'xykall-biolink-app'; 
         
         // Token autentikasi tidak ada di Vercel, jadi kita akan login anonim.
-        // Ini menggantikan '__initial_auth_token'
         const initialAuthToken = null; 
         
         let app, auth, db;
@@ -410,10 +404,6 @@
 
         // Inisialisasi Firebase
         try {
-            // Cek jika config sudah diisi
-            if (firebaseConfig.apiKey === "AIzaSyCgQRwRFjKOXZI9pm40r3mdHZRHhC43dRU") {
-                throw new Error("Firebase config belum diisi. Silakan edit file index.html.");
-            }
             app = initializeApp(firebaseConfig);
             auth = getAuth(app);
             db = getFirestore(app);
@@ -432,18 +422,13 @@
 
         // --- 4. Fungsi Utama Aplikasi ---
         
-        /**
-         * Autentikasi Pengguna
-         */
         async function handleAuth() {
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     console.log("User authenticated:", user.uid);
                     currentUserId = user.uid;
-                    // Tentukan profil siapa yang akan ditampilkan
                     determineViewedProfile();
                 } 
-                // PERBAIKAN: Hapus 'else if (initialAuthToken)' karena tidak ada di Vercel
                 else {
                     console.log("Signing in anonymously...");
                     try {
@@ -455,9 +440,6 @@
             });
         }
 
-        /**
-         * Tentukan profil siapa yang akan dilihat berdasarkan URL
-         */
         function determineViewedProfile() {
             const urlParams = new URLSearchParams(window.location.search);
             viewedProfileId = urlParams.get('profile') || currentUserId;
@@ -467,25 +449,18 @@
             console.log(`Viewed Profile: ${viewedProfileId}`);
             console.log(`Is Owner: ${isOwner}`);
 
-            // Tampilkan tombol pengaturan HANYA jika dia pemilik
             if (isOwner) {
                 dom.ownerControls.classList.remove('hidden');
             } else {
                 dom.ownerControls.classList.add('hidden');
             }
             
-            // Set doc ref. Gunakan path "public" agar bisa dibaca semua orang
-            // PERBAIKAN: Gunakan 'appId' yang sudah didefinisikan di atas
             const collectionPath = `artifacts/${appId}/public/data/biolink_profiles`;
             profileDocRef = doc(db, collectionPath, viewedProfileId);
             
-            // Mulai mendengarkan data profil
             loadProfileData();
         }
 
-        /**
-         * Buat profil default untuk pengguna baru
-         */
         async function createDefaultProfile() {
             const defaultData = {
                 general: {
@@ -501,14 +476,6 @@
                         icon: 'link',
                         animation: 'none',
                         clicks: 0
-                    },
-                    { 
-                        id: crypto.randomUUID(), 
-                        title: 'Link Contoh 2 (Edit Saya)', 
-                        url: '#', 
-                        icon: 'link',
-                        animation: 'none',
-                        clicks: 0
                     }
                 ],
                 style: {
@@ -517,7 +484,7 @@
                     font: "'Inter', sans-serif"
                 },
                 extras: {
-                    songUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3', // Contoh lagu
+                    songUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
                     songTitle: 'SoundHelix Song 1 - T. Schürger',
                     videoUrl: '',
                     emailSignup: false,
@@ -531,20 +498,15 @@
             try {
                 await setDoc(profileDocRef, defaultData);
                 console.log("Default profile created.");
-                // onSnapshot akan otomatis mengambil data baru ini
             } catch (e) {
                 console.error("Error creating default profile:", e);
             }
         }
 
-        /**
-         * Ambil dan dengarkan perubahan data profil dari Firestore
-         */
         function loadProfileData() {
-            if (unsubscribeProfile) unsubscribeProfile(); // Hentikan listener lama jika ada
+            if (unsubscribeProfile) unsubscribeProfile(); 
 
             unsubscribeProfile = onSnapshot(profileDocRef, (docSnap) => {
-                // Pastikan DOM sudah siap
                 if (!dom.loadingSpinner) {
                     console.warn("DOM not ready, skipping snapshot render");
                     return;
@@ -559,55 +521,45 @@
                     profileData = docSnap.data();
                     console.log("Profile data loaded:", profileData);
                     
-                    // Render tampilan utama
                     renderProfileView(profileData);
                     
-                    // Jika pemilik, render juga panel pengaturan
                     if (isOwner) {
                         renderSettingsPanel(profileData);
                     }
                 } else {
-                    // Profil tidak ditemukan
                     console.log("No such profile!");
                     if (isOwner) {
-                        // Jika dia pemilik, buatkan profil default
                         console.log("Creating default profile for owner...");
                         createDefaultProfile();
                     } else {
-                        // Jika dia tamu, tampilkan pesan error
                         dom.errorMessage.classList.remove('hidden');
                         dom.mainContent.classList.add('opacity-0');
                     }
                 }
             }, (error) => {
                 console.error("Error loading profile data:", error);
-                dom.loadingSpinner.innerHTML = 'Gagal memuat profil.';
+                // Tampilkan pesan error yang lebih spesifik jika karena permission
+                if (error.code === 'permission-denied') {
+                     dom.loadingSpinner.innerHTML = 'Gagal memuat profil. Error: Permission Denied. <br> **Pastikan Anda sudah mengatur Firestore Rules!**';
+                } else {
+                     dom.loadingSpinner.innerHTML = `Gagal memuat profil. Error: ${error.message}`;
+                }
             });
         }
         
-        /**
-         * Render tampilan utama (yang dilihat publik)
-         */
         function renderProfileView(data) {
             const { general, links, style, extras } = data;
             
-            // 1. Render Tampilan & Font
             document.body.classList.remove('theme-light', 'theme-dark', 'theme-gradient');
             document.body.classList.add(style.theme || 'theme-light');
             document.documentElement.style.setProperty('--font-family', style.font || "'Inter', sans-serif");
-            if (style.bgImage) {
-                dom.appContainer.style.backgroundImage = `url(${style.bgImage})`;
-            } else {
-                dom.appContainer.style.backgroundImage = 'none';
-            }
+            dom.appContainer.style.backgroundImage = style.bgImage ? `url(${style.bgImage})` : 'none';
             document.title = `${general.name} | BioLink`;
 
-            // 2. Render Info General
             dom.profilePic.src = general.picUrl || 'https://placehold.co/128x128/e0e0e0/7f7f7f?text=Foto';
             dom.profileName.textContent = general.name || 'Nama Anda';
             dom.profileBio.textContent = general.bio || 'Bio Anda';
 
-            // 3. Render Link
             dom.linksSection.innerHTML = '';
             if (links && links.length > 0) {
                 links.forEach(link => {
@@ -630,30 +582,23 @@
                 });
             }
 
-            // 4. Render Video Embed
-            if (extras.videoUrl) {
-                const embedUrl = convertToEmbedUrl(extras.videoUrl);
-                if (embedUrl) {
-                    dom.videoIframe.src = embedUrl;
-                    dom.videoEmbedSection.classList.remove('hidden');
-                } else {
-                    dom.videoEmbedSection.classList.add('hidden');
-                }
+            const embedUrl = extras.videoUrl ? convertToEmbedUrl(extras.videoUrl) : null;
+            if (embedUrl) {
+                dom.videoIframe.src = embedUrl;
+                dom.videoEmbedSection.classList.remove('hidden');
             } else {
                 dom.videoEmbedSection.classList.add('hidden');
             }
 
-            // 5. Render Email Signup
             dom.emailSignupSection.classList.toggle('hidden', !extras.emailSignup);
             
-            // 6. Render Ikon Sosial
             dom.socialIconsSection.innerHTML = '';
             const socialMap = {
                 instagram: 'instagram', twitter: 'twitter', facebook: 'facebook',
                 linkedin: 'linkedin', github: 'github', tiktok: 'tiktok'
             };
             for (const [key, icon] of Object.entries(socialMap)) {
-                if (extras.socials[key]) {
+                if (extras.socials && extras.socials[key]) {
                     const socialEl = document.createElement('a');
                     socialEl.href = extras.socials[key];
                     socialEl.target = '_blank';
@@ -666,7 +611,6 @@
                 }
             }
 
-            // 7. Render Musik
             dom.audioPlayer.src = extras.songUrl || '';
             dom.songTitle.textContent = extras.songTitle || 'Musik Tidak Tersedia';
             dom.musicPopup.classList.toggle('hidden', !extras.songUrl);
@@ -678,33 +622,24 @@
             }
         }
         
-        /**
-         * Render panel pengaturan (HANYA untuk pemilik)
-         */
         function renderSettingsPanel(data) {
             const { general, links, style, extras } = data;
             
-            // Tab Share
             const shareUrl = `${window.location.origin}${window.location.pathname}?profile=${viewedProfileId}`;
             dom.shareLinkInput.value = shareUrl;
             dom.qrcodeEl.innerHTML = '';
             if (typeof QRCode !== 'undefined') {
                 new QRCode(dom.qrcodeEl, {
-                    text: shareUrl,
-                    width: 192,
-                    height: 192,
-                    colorDark: "#000000",
-                    colorLight: "#ffffff",
+                    text: shareUrl, width: 192, height: 192,
+                    colorDark: "#000000", colorLight: "#ffffff",
                     correctLevel: QRCode.CorrectLevel.H
                 });
             }
 
-            // Tab General
             $('#setting-name').value = general.name;
             $('#setting-bio').value = general.bio;
             $('#setting-pic-url').value = general.picUrl;
             
-            // Tab Links
             const linksEditorList = $('#links-editor-list');
             linksEditorList.innerHTML = '';
             links.forEach((link, index) => {
@@ -714,11 +649,9 @@
                 editorEl.innerHTML = `
                     <div class="flex justify-between items-center mb-3">
                         <span class="font-semibold text-gray-700">Link ${index + 1}</span>
-                        <div>
-                            <button class="btn-delete-link text-red-600 hover:text-red-800 p-1" title="Hapus Link">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
-                        </div>
+                        <button class="btn-delete-link text-red-600 hover:text-red-800 p-1" title="Hapus Link">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
                     </div>
                     <div class="space-y-2">
                         <input type="text" class="setting-link-title w-full p-2 border rounded-lg" value="${link.title}" placeholder="Judul Link">
@@ -737,7 +670,6 @@
                 linksEditorList.appendChild(editorEl);
             });
             
-            // Tab Style
             $$('.theme-select-btn').forEach(btn => {
                 btn.classList.toggle('ring-2', btn.dataset.theme === style.theme);
                 btn.classList.toggle('ring-blue-500', btn.dataset.theme === style.theme);
@@ -745,14 +677,15 @@
             $('#setting-bg-image').value = style.bgImage || '';
             $('#setting-font').value = style.font || "'Inter', sans-serif";
             
-            // Tab Extras
             $('#setting-song-url').value = extras.songUrl || '';
             $('#setting-song-title').value = extras.songTitle || '';
             $('#setting-video-url').value = extras.videoUrl || '';
             $('#setting-email-signup').checked = extras.emailSignup || false;
             
-            for (const key of ['instagram', 'twitter', 'facebook', 'linkedin', 'github', 'tiktok']) {
-                $(`#social-${key}`).value = extras.socials[key] || '';
+            if (extras.socials) {
+                for (const key of ['instagram', 'twitter', 'facebook', 'linkedin', 'github', 'tiktok']) {
+                    $(`#social-${key}`).value = extras.socials[key] || '';
+                }
             }
 
             if (typeof lucide !== 'undefined') {
@@ -760,11 +693,7 @@
             }
         }
 
-        /**
-         * Setup semua event listener untuk panel pengaturan
-         */
         function setupSettingsListeners() {
-            // Toggle panel
             dom.toggleSettingsBtn.onclick = () => {
                 dom.settingsPanel.classList.remove('translate-x-full');
                 dom.settingsOverlay.classList.remove('hidden');
@@ -774,7 +703,6 @@
                 dom.settingsOverlay.classList.add('hidden');
             };
             
-            // Tab
             $$('.tab-btn').forEach(btn => {
                 btn.onclick = (e) => {
                     $$('.tab-content').forEach(tab => tab.classList.add('hidden'));
@@ -784,66 +712,47 @@
                     e.target.classList.add('text-blue-600', 'border-blue-600');
                 };
             });
-            // Buka tab 'share' by default
             const defaultTab = $('.tab-btn[data-tab="tab-share"]');
             if(defaultTab) defaultTab.click();
 
-            // Tombol Simpan
             $('#save-general-btn').onclick = saveGeneralSettings;
             $('#save-style-btn').onclick = saveStyleSettings;
             $('#save-extras-btn').onclick = saveExtrasSettings;
-
-            // Tombol "Add Link"
             $('#add-link-btn').onclick = addLink;
 
-            // Tombol "Copy Link"
             dom.copyLinkBtn.onclick = () => {
                 dom.shareLinkInput.select();
                 try {
                     document.execCommand('copy');
                     dom.copyLinkBtn.textContent = 'Disalin!';
                 } catch (err) {
-                    console.error('Gagal menyalin link:', err);
                     dom.copyLinkBtn.textContent = 'Gagal Salin';
                 }
                 setTimeout(() => dom.copyLinkBtn.textContent = 'Salin Link', 2000);
             };
 
-            // Tombol Download Email
             $('#download-emails-btn').onclick = downloadEmails;
 
-            // Event delegation untuk tombol di dalam list link (delete, update)
             $('#links-editor-list').addEventListener('click', (e) => {
                 const deleteBtn = e.target.closest('.btn-delete-link');
                 if (deleteBtn) {
                     const linkEditor = deleteBtn.closest('[data-link-id]');
-                    const linkId = linkEditor.dataset.linkId;
-                    deleteLink(linkId);
+                    deleteLink(linkEditor.dataset.linkId);
                 }
             });
             
-            // Simpan link saat user selesai mengedit (on blur/change)
             $('#links-editor-list').addEventListener('change', (e) => {
                 const input = e.target.closest('input, select');
                 if (input) {
                     const linkEditor = input.closest('[data-link-id]');
-                    const linkId = linkEditor.dataset.linkId;
-                    updateLink(linkId, linkEditor);
+                    updateLink(linkEditor.dataset.linkId, linkEditor);
                 }
             });
             
-            // Submit form email
             dom.emailForm.onsubmit = handleEmailSubmit;
-
-            // Pemutar Musik
             dom.musicIconContainer.onclick = toggleMusic;
-
-            // Tombol Go Home di Error Page
-            dom.goHomeBtn.onclick = () => {
-                window.location.search = ''; // Hapus query param & reload
-            };
+            dom.goHomeBtn.onclick = () => { window.location.search = ''; };
             
-            // Listener untuk tombol tema
             $$('.theme-select-btn').forEach(btn => {
                 btn.onclick = () => {
                     $$('.theme-select-btn').forEach(b => {
@@ -972,28 +881,22 @@
         
         async function handleLinkClick(e) {
             if (isOwner) return; 
-            
             e.preventDefault();
-            
             const linkEl = e.currentTarget;
             const linkId = linkEl.dataset.linkId;
             const targetUrl = linkEl.href;
-            
             if (!profileData.links) profileData.links = [];
-
             const newLinks = profileData.links.map(link => {
                 if (link.id === linkId) {
                     return { ...link, clicks: (link.clicks || 0) + 1 };
                 }
                 return link;
             });
-
             try {
                 await updateDoc(profileDocRef, { links: newLinks });
             } catch (e) {
                 console.error("Error updating click count:", e);
             }
-            
             window.open(targetUrl, '_blank');
         }
 
@@ -1074,7 +977,6 @@
                 } else if (urlObj.hostname.includes('youtube.com')) {
                     videoId = urlObj.searchParams.get('v');
                 }
-                
                 return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
             } catch (e) {
                 console.warn("Invalid video URL:", url);
@@ -1090,7 +992,6 @@
                 'JetBrains Mono': 'https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap',
                 'Inter': 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'
             };
-
             for (const font in fonts) {
                 const link = document.createElement('link');
                 link.href = fonts[font];
@@ -1103,7 +1004,6 @@
         document.addEventListener("DOMContentLoaded", () => {
             console.log("DOM Loaded. Initializing app...");
             
-            // 1. Definisikan variabel DOM
             dom = {
                 loadingSpinner: $('#loading-spinner'),
                 errorMessage: $('#error-message'),
@@ -1138,33 +1038,22 @@
                 qrcodeEl: $('#qrcode'),
             };
 
-            // 2. Muat Font
             loadCustomFonts();
-            
-            // 3. Setup Listener Musik
             dom.audioPlayer.onended = onMusicEnded;
-
-            // 4. Setup Listener Pengaturan
             setupSettingsListeners();
 
-            // 5. Mulai proses autentikasi
-            // Cek jika firebase berhasil dimuat
             if (app) {
                 handleAuth();
             } else {
                 console.error("Firebase app is not initialized. Auth process stopped.");
             }
 
-            // 6. Panggil createIcons()
             if (typeof lucide !== 'undefined') {
                 lucide.createIcons();
             } else {
                 setTimeout(() => {
-                    if (typeof lucide !== 'undefined') {
-                        lucide.createIcons();
-                    } else {
-                        console.error("Lucide failed to load.");
-                    }
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                    else console.error("Lucide failed to load.");
                 }, 500);
             }
         });
@@ -1173,4 +1062,3 @@
 
 </body>
 </html>
-
